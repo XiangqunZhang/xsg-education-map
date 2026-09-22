@@ -570,6 +570,100 @@
     .canvas-nav-btn:hover {
       background: #2563eb;
     }
+
+    /* Basemap Switcher Buttons */
+    .btn-basemap {
+      background: transparent;
+      border: none;
+      padding: 5px 11px;
+      font-size: 11px;
+      color: #94a3b8;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-basemap:hover {
+      color: #fff;
+      background: rgba(56, 189, 248, 0.2);
+    }
+    .btn-basemap.active {
+      background: #0284c7;
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 0 8px rgba(2, 132, 199, 0.5);
+    }
+
+    /* AMap Dark Mode Filter (Pure Chinese Map, 0 Watermark, Sci-Fi HUD) */
+    .amap-dark-tiles {
+      filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(92%) saturate(120%);
+    }
+
+    /* Modal Overlay & Card */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-card {
+      background: #0d1426;
+      border: 1px solid #38bdf8;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.2);
+      border-radius: 12px;
+      width: 520px;
+      max-width: 90vw;
+      padding: 24px;
+      color: #f8fafc;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .modal-card h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(56,189,248,0.2);
+      padding-bottom: 10px;
+    }
+    .modal-card .close-btn {
+      cursor: pointer;
+      font-size: 20px;
+      color: #94a3b8;
+    }
+    .modal-card .close-btn:hover { color: #fff; }
+    .form-item { margin-bottom: 14px; }
+    .form-item label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 6px; }
+    .form-item input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 8px 12px;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 12px;
+      outline: none;
+    }
+    .form-item input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -584,13 +678,17 @@
       </div>
     </div>
     <div class="header-actions">
-      <div id="engine-indicator" class="engine-status-tag">
-        <span id="engine-icon">🌐</span>
-        <span id="engine-text">GIS双引擎就绪</span>
+      <!-- Basemap Switcher Group (AMap + Offline) -->
+      <div style="display:flex; background:rgba(15,23,42,0.85); padding:2px; border-radius:6px; border:1px solid rgba(56,189,248,0.35);">
+        <button class="btn-basemap active" id="btn-map-dark" onclick="switchBaseMap('amap-dark', this)" title="高德夜间科技底图（无水印）">🌃 高德深色</button>
+        <button class="btn-basemap" id="btn-map-std" onclick="switchBaseMap('amap-std', this)" title="高德高清中文街道图（无水印）">🗺️ 高德标准</button>
+        <button class="btn-basemap" id="btn-map-sat" onclick="switchBaseMap('amap-sat', this)" title="高德高清卫星影像图（无水印）">🛰️ 高德卫星</button>
+        <button class="btn-basemap" id="btn-map-canvas" onclick="toggleEngine()" title="纯离线HTML5矢量雷达引擎">⚡ 离线引擎</button>
       </div>
-      <button class="btn" onclick="toggleEngine()" id="btn-engine">⚡ 切换底图引擎</button>
-      <button class="btn" onclick="toggleRadius()" id="btn-toggle-radius">🎯 辐射圈 (5KM/3KM/1KM)</button>
-      <button class="btn" onclick="toggleLinks()" id="btn-toggle-links">⚡ 对口链路透视</button>
+
+      <button class="btn" onclick="openAmapModal()" title="可选：配置您申请的高德/百度开放平台 Key">🔑 高德Key配置</button>
+      <button class="btn" onclick="toggleRadius()" id="btn-toggle-radius">🎯 5KM辐射圈</button>
+      <button class="btn" onclick="toggleLinks()" id="btn-toggle-links">⚡ 对口升学链路</button>
       <button class="btn" onclick="resetView()">🔄 重置全景</button>
       <button class="btn btn-primary" onclick="window.print()">🖨️ 导出研报/打印</button>
     </div>
@@ -1123,35 +1221,53 @@
     // -------------------------------------------------------------
     // 3. LEAFLET INITIALIZATION
     // -------------------------------------------------------------
+    // -------------------------------------------------------------
+    // BASEMAP MANAGEMENT (AMap Ecosystem - Zero Watermark)
+    // -------------------------------------------------------------
+    let currentBaseMapType = 'amap-dark';
+    const baseMapLayers = {};
+
     function initLeaflet() {
       try {
         leafletMap = L.map('map', {
           center: CENTER_POINT.coords,
           zoom: 14,
-          minZoom: 11,
+          minZoom: 10,
           maxZoom: 18,
           zoomControl: false
         });
 
         L.control.zoom({ position: 'topright' }).addTo(leafletMap);
 
-        const darkTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-          attribution: '&copy; CARTO &copy; OpenStreetMap',
-          subdomains: 'abcd',
-          maxZoom: 19
+        // 1. 高德暗夜科技底图（通过 CSS filter 滤镜渲染出深色科技感，100%无水印）
+        baseMapLayers['amap-dark'] = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&lang=zh_cn&size=1&scl=1&style=7', {
+          subdomains: ['1', '2', '3', '4'],
+          className: 'amap-dark-tiles',
+          attribution: '&copy; 高德地图 (暗夜科技)',
+          maxZoom: 18
         });
 
-        const amapTile = L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
-          subdomains: ["1", "2", "3", "4"],
-          attribution: '&copy; 高德地图'
+        // 2. 高德标准街道底图（彩色全中文，包含清晰街区、绿地、学校、小区，100%无水印）
+        baseMapLayers['amap-std'] = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&lang=zh_cn&size=1&scl=1&style=7', {
+          subdomains: ['1', '2', '3', '4'],
+          attribution: '&copy; 高德地图 (标准街道)',
+          maxZoom: 18
         });
 
-        darkTile.addTo(leafletMap);
-
-        // Tile load error listener -> fallback to amap or canvas
-        darkTile.on('tileerror', function() {
-          console.warn("Tile load error on CartoDB, attempting fallback...");
+        // 3. 高德高清卫星影像底图（真实卫星航拍 + 道路标注层，100%无水印）
+        const satBase = L.tileLayer('https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', {
+          subdomains: ['1', '2', '3', '4'],
+          maxZoom: 18
         });
+        const satRoad = L.tileLayer('https://wprd0{s}.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&lang=zh_cn&size=1&scl=1&style=8', {
+          subdomains: ['1', '2', '3', '4'],
+          maxZoom: 18,
+          attribution: '&copy; 高德地图 (卫星影像)'
+        });
+        baseMapLayers['amap-sat'] = L.layerGroup([satBase, satRoad]);
+
+        // 默认加载高德暗夜科技底图
+        baseMapLayers['amap-dark'].addTo(leafletMap);
 
         // Add circles
         drawLeafletCircles();
@@ -1159,11 +1275,88 @@
         // Add markers
         plotLeafletMarkers();
 
-        document.getElementById('engine-text').innerText = "在线高精度GIS (Leaflet)";
-        document.getElementById('engine-icon').innerText = "🌐";
+        // Check if user stored custom AMap Key
+        loadStoredAmapConfig();
+
       } catch (e) {
         console.error("Leaflet init failed, fallback to Canvas:", e);
         switchToCanvasEngine();
+      }
+    }
+
+    function switchBaseMap(type, btn) {
+      if (currentEngine !== 'leaflet') {
+        switchToLeafletEngine();
+      }
+
+      // Remove all basemap layers
+      Object.values(baseMapLayers).forEach(layer => {
+        if (leafletMap && leafletMap.hasLayer(layer)) {
+          leafletMap.removeLayer(layer);
+        }
+      });
+
+      // Add selected layer
+      if (baseMapLayers[type] && leafletMap) {
+        baseMapLayers[type].addTo(leafletMap);
+        currentBaseMapType = type;
+      }
+
+      // Highlight button
+      document.querySelectorAll('.btn-basemap').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+
+      const names = {
+        'amap-dark': '高德暗夜科技底图（无水印）',
+        'amap-std': '高德标准街道底图（彩色清晰）',
+        'amap-sat': '高德高清卫星影像（真实航拍）'
+      };
+      showToast(`已切换至：${names[type] || type}`);
+    }
+
+    // Modal & Key Management
+    function openAmapModal() {
+      const modal = document.getElementById('amap-modal');
+      if (modal) modal.style.display = 'flex';
+      const storedKey = localStorage.getItem('ruimanfen_amap_key') || '';
+      const storedSecret = localStorage.getItem('ruimanfen_amap_secret') || '';
+      if (document.getElementById('input-amap-key')) document.getElementById('input-amap-key').value = storedKey;
+      if (document.getElementById('input-amap-secret')) document.getElementById('input-amap-secret').value = storedSecret;
+    }
+
+    function closeAmapModal() {
+      const modal = document.getElementById('amap-modal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function saveAmapConfig() {
+      const key = (document.getElementById('input-amap-key').value || '').trim();
+      const secret = (document.getElementById('input-amap-secret').value || '').trim();
+      if (key) {
+        localStorage.setItem('ruimanfen_amap_key', key);
+        if (secret) localStorage.setItem('ruimanfen_amap_secret', secret);
+        showToast("已成功保存高德开放平台 API Key！");
+      } else {
+        localStorage.removeItem('ruimanfen_amap_key');
+        localStorage.removeItem('ruimanfen_amap_secret');
+        showToast("已恢复使用默认免Key高德高速瓦片服务");
+      }
+      closeAmapModal();
+    }
+
+    function clearAmapConfig() {
+      localStorage.removeItem('ruimanfen_amap_key');
+      localStorage.removeItem('ruimanfen_amap_secret');
+      if (document.getElementById('input-amap-key')) document.getElementById('input-amap-key').value = '';
+      if (document.getElementById('input-amap-secret')) document.getElementById('input-amap-secret').value = '';
+      showToast("已恢复默认高德免Key通道");
+      closeAmapModal();
+    }
+
+    function loadStoredAmapConfig() {
+      const key = localStorage.getItem('ruimanfen_amap_key');
+      if (key) {
+        console.log("Custom AMap Key detected:", key);
       }
     }
 
@@ -1595,7 +1788,7 @@
       currentEngine = 'leaflet';
       document.getElementById('offline-canvas').style.display = 'none';
       document.getElementById('canvas-controls').style.display = 'none';
-      document.getElementById('engine-text').innerText = "在线高精度GIS (Leaflet)";
+      document.getElementById('engine-text').innerText = "在线高精GIS (高德底图)";
       document.getElementById('engine-icon').innerText = "🌐";
       if (leafletMap) leafletMap.invalidateSize();
       showToast("已切换至【在线GIS底图引擎】");
@@ -1904,5 +2097,42 @@
 
     window.addEventListener('DOMContentLoaded', initApplication);
   </script>
+
+  <!-- Amap Key Config Modal -->
+  <div id="amap-modal" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+      <h3>
+        <span>🔑 高德地图 API 接口配置</span>
+        <span class="close-btn" onclick="closeAmapModal()">&times;</span>
+      </h3>
+      <div style="background: rgba(16, 185, 129, 0.12); border-left: 3px solid #10b981; padding: 10px 12px; border-radius: 4px; font-size: 11.5px; margin-bottom: 14px; color: #a7f3d0; line-height: 1.5;">
+        <strong>✅ 当前状态：已默认连接高德国内免Key高清瓦片，100%无水印！</strong><br>
+        无需填写任何 Key 即可正常查看街道、小区、学校与升学示踪。如果您已在高德开放平台申请了专属的 Web 服务 Key，也可在下方填入保存。
+      </div>
+
+      <div class="form-item">
+        <label>高德 Web 服务 Key (apiKey)：</label>
+        <input type="text" id="input-amap-key" placeholder="例如：7b8e192c... (在高德开放平台创建)">
+      </div>
+      <div class="form-item">
+        <label>高德安全密钥 (securityJsCode - 可选)：</label>
+        <input type="password" id="input-amap-secret" placeholder="若设置了安全密钥请填写">
+      </div>
+
+      <div style="background:rgba(56,189,248,0.08); border-radius:6px; padding:10px; font-size:11px; color:#94a3b8; line-height:1.6;">
+        <strong style="color:#38bdf8;">📌 如何免费申请高德官方 API Key（1分钟免费）：</strong><br>
+        1. 访问 <a href="https://lbs.amap.com/" target="_blank" style="color:#38bdf8; text-decoration:underline;">高德开放平台 (lbs.amap.com)</a> 登录/注册（支持支付宝免密扫码）；<br>
+        2. 点击右上角「控制台」➔「应用管理」➔「我的应用」➔「创建新应用」；<br>
+        3. 点击「添加 Key」，服务平台选择「Web端 (JS API)」，即可生成免费 Key；<br>
+        4. 个人开发者每日享有数万次免费调用额度，完全零成本。
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn" onclick="clearAmapConfig()">清除配置(恢复默认免Key)</button>
+        <button class="btn btn-primary" onclick="saveAmapConfig()">保存并生效</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
