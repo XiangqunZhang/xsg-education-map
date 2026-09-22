@@ -1,0 +1,1908 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>锐满分教育（金御花园校区）· 咸水沽5公里基础教育全景可视化地图</title>
+  
+  <!-- Leaflet CSS (with fallback) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  
+  <style>
+    :root {
+      --bg-dark: #070b16;
+      --bg-panel: rgba(13, 20, 38, 0.92);
+      --bg-card: rgba(22, 32, 60, 0.75);
+      --border-glow: rgba(56, 189, 248, 0.3);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --accent-cyan: #06b6d4;
+      --accent-blue: #38bdf8;
+      --accent-gold: #f59e0b;
+      --accent-purple: #a855f7;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation Header */
+    header {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.98));
+      border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, #f43f5e, #f59e0b);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 9px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 14px rgba(244, 63, 94, 0.5);
+    }
+
+    .brand-text h1 {
+      font-size: 17px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #38bdf8, #818cf8, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 0.3px;
+    }
+
+    .brand-text p {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 1px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #e2e8f0;
+      padding: 6px 13px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+      color: #fff;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      border: none;
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.4);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0369a1, #1d4ed8);
+    }
+
+    .engine-status-tag {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid #10b981;
+      color: #6ee7b7;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Main Container */
+    .main-container {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 58px);
+      position: relative;
+    }
+
+    /* Map Viewport Area */
+    #map-container {
+      flex: 1;
+      height: 100%;
+      position: relative;
+      background-color: #080d1a;
+      overflow: hidden;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    #offline-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      display: none;
+      cursor: grab;
+    }
+    #offline-canvas:active {
+      cursor: grabbing;
+    }
+
+    /* Floating Search & Filters */
+    .map-floating-panel {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 320px;
+    }
+
+    .glass-box {
+      background: var(--bg-panel);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border-glow);
+      border-radius: 10px;
+      padding: 12px 14px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 8px;
+      padding: 6px 10px;
+      gap: 8px;
+    }
+
+    .search-box input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-size: 13px;
+      width: 100%;
+    }
+    .search-box input::placeholder {
+      color: #64748b;
+    }
+
+    .filter-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chip.active {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: #38bdf8;
+      color: #38bdf8;
+      font-weight: 600;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
+    }
+
+    /* Map Legend */
+    .map-legend {
+      position: absolute;
+      bottom: 24px;
+      left: 16px;
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 11px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #cbd5e1;
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    /* Radar Pulse Animation */
+    .radar-pulse-core {
+      width: 14px;
+      height: 14px;
+      background: #f43f5e;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 14px #f43f5e;
+      z-index: 2;
+    }
+
+    .radar-pulse-wave {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(244, 63, 94, 0.45);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+      z-index: 1;
+    }
+
+    @keyframes pulse-ring {
+      0% {
+        transform: translate(-50%, -50%) scale(0.3);
+        opacity: 0.95;
+      }
+      80%, 100% {
+        transform: translate(-50%, -50%) scale(2.3);
+        opacity: 0;
+      }
+    }
+
+    /* Custom Leaflet Marker Badges */
+    .marker-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 14px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.6);
+      border: 1.5px solid rgba(255,255,255,0.7);
+      cursor: pointer;
+    }
+
+    .marker-primary {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: #fff;
+      border-color: #38bdf8;
+    }
+
+    .marker-middle {
+      background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      color: #fff;
+      border-color: #c084fc;
+    }
+
+    .marker-high {
+      background: linear-gradient(135deg, #d97706, #b45309);
+      color: #fff;
+      border-color: #fde047;
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.6);
+    }
+
+    .marker-community {
+      background: rgba(15, 23, 42, 0.92);
+      color: #a7f3d0;
+      border: 1px solid #10b981;
+      font-size: 10px;
+    }
+
+    /* Right Sidebar Tabs */
+    .sidebar {
+      width: 440px;
+      height: 100%;
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      border-left: 1px solid var(--border-glow);
+      display: flex;
+      flex-direction: column;
+      z-index: 600;
+      box-shadow: -4px 0 25px rgba(0,0,0,0.5);
+    }
+
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+      background: rgba(10, 16, 31, 0.7);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover { color: #38bdf8; }
+    .tab-btn.active {
+      color: #38bdf8;
+      border-bottom-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .tab-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: none;
+    }
+    .tab-content.active { display: block; }
+
+    .tab-content::-webkit-scrollbar { width: 5px; }
+    .tab-content::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.3);
+      border-radius: 4px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 9px;
+      padding: 12px;
+      margin-bottom: 12px;
+      transition: border 0.2s, transform 0.2s;
+    }
+
+    .card:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #f8fafc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .badge-pill {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 12px;
+    }
+    .pill-tier1 { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .pill-tier2 { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #cbd5e1;
+      margin: 4px 0;
+    }
+    .stat-value { font-weight: 700; color: #38bdf8; }
+    .highlight-red { color: #f87171 !important; font-weight: 800; }
+    .highlight-gold { color: #fbbf24 !important; font-weight: 800; }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .kpi-item {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+    .kpi-val {
+      font-size: 20px;
+      font-weight: 800;
+      color: #38bdf8;
+      font-family: monospace;
+    }
+    .kpi-label { font-size: 10px; color: #94a3b8; margin-top: 2px; }
+
+    .progress-bar-wrap {
+      width: 100%;
+      height: 6px;
+      background: rgba(30, 41, 59, 0.8);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .progress-bar-fill { height: 100%; border-radius: 3px; }
+
+    .pathway-box {
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.15), rgba(99, 102, 241, 0.15));
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      position: relative;
+      padding-bottom: 10px;
+    }
+    .step-item:last-child { padding-bottom: 0; }
+    .step-item:not(:last-child)::before {
+      content: "";
+      position: absolute;
+      left: 10px;
+      top: 18px;
+      width: 2px;
+      height: calc(100% - 10px);
+      background: rgba(99, 102, 241, 0.4);
+    }
+    .step-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #4f46e5;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+      z-index: 1;
+    }
+
+    .strategy-item {
+      border-left: 3px solid #38bdf8;
+      padding-left: 8px;
+      margin: 8px 0;
+      font-size: 11px;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+
+    /* Toast */
+    #toast {
+      position: absolute;
+      bottom: 24px;
+      right: 460px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid #38bdf8;
+      color: #f8fafc;
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+
+    /* Custom vector map canvas controls */
+    .canvas-nav-box {
+      position: absolute;
+      right: 16px;
+      bottom: 24px;
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .canvas-nav-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-glow);
+      color: #fff;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .canvas-nav-btn:hover {
+      background: #2563eb;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand-title">
+      <div class="brand-badge">5KM GIS MAP</div>
+      <div class="brand-text">
+        <h1>锐满分教育（金御花园校区）· 咸水沽5公里基础教育全景可视化地图</h1>
+        <p>中心坐标：金御花园 [38.9786°N, 117.3822°E] | 5公里辐射圈、对口划片、初高中升学率全景透视</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div id="engine-indicator" class="engine-status-tag">
+        <span id="engine-icon">🌐</span>
+        <span id="engine-text">GIS双引擎就绪</span>
+      </div>
+      <button class="btn" onclick="toggleEngine()" id="btn-engine">⚡ 切换底图引擎</button>
+      <button class="btn" onclick="toggleRadius()" id="btn-toggle-radius">🎯 辐射圈 (5KM/3KM/1KM)</button>
+      <button class="btn" onclick="toggleLinks()" id="btn-toggle-links">⚡ 对口链路透视</button>
+      <button class="btn" onclick="resetView()">🔄 重置全景</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨️ 导出研报/打印</button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <div class="main-container">
+    
+    <!-- Map Container -->
+    <div id="map-container">
+      <!-- Leaflet Map Layer (Online) -->
+      <div id="map"></div>
+      
+      <!-- Offline High-Precision Vector Canvas Layer (Offline/Dual Fallback) -->
+      <canvas id="offline-canvas"></canvas>
+
+      <!-- Canvas zoom/nav controls -->
+      <div class="canvas-nav-box" id="canvas-controls" style="display:none;">
+        <div class="canvas-nav-btn" onclick="canvasZoom(1.2)">+</div>
+        <div class="canvas-nav-btn" onclick="canvasZoom(0.8)">−</div>
+        <div class="canvas-nav-btn" onclick="resetView()">⌂</div>
+      </div>
+
+      <!-- Floating Map Search & Filters -->
+      <div class="map-floating-panel">
+        <div class="glass-box">
+          <div class="search-box">
+            <span style="font-size:14px;">🔍</span>
+            <input type="text" id="geo-search" placeholder="输入小区名或学校名定位..." oninput="handleSearch(this.value)">
+          </div>
+          <div class="filter-chips">
+            <div class="chip active" data-filter="all" onclick="setFilter('all', this)">全部呈现</div>
+            <div class="chip" data-filter="primary" onclick="setFilter('primary', this)">仅看小学</div>
+            <div class="chip" data-filter="middle" onclick="setFilter('middle', this)">仅看初中</div>
+            <div class="chip" data-filter="high" onclick="setFilter('high', this)">重点高中</div>
+            <div class="chip" data-filter="community" onclick="setFilter('community', this)">居民小区</div>
+            <div class="chip" data-filter="tier1" onclick="setFilter('tier1', this)">只看第一梯队</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map Legend -->
+      <div class="map-legend glass-box">
+        <div class="legend-item"><span class="legend-dot" style="background:#f43f5e; box-shadow:0 0 6px #f43f5e;"></span><strong>中心基准：锐满分教育（金御花园）</strong></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#0284c7;"></span>公办小学（第一/第二梯队）</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#7c3aed;"></span>公办初中（第二学区派位池）</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span>市/区重点高中（咸一中/咸二中）</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#10b981;"></span>代表性住宅小区（划片居住区）</div>
+        <div class="legend-item" style="font-size:10px; color:#94a3b8; margin-top:2px;">辐射圆环：🟢1KM步行圈 | 🔵3KM主力客群 | 🟣5KM辐射圈</div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar Tabs -->
+    <div class="sidebar">
+      <div class="sidebar-tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-macro', this)">📊 5KM大盘看板</button>
+        <button class="tab-btn" onclick="switchTab('tab-query', this)">🏘️ 小区对口速查</button>
+        <button class="tab-btn" onclick="switchTab('tab-strategy', this)">💼 锐满分拓客作战</button>
+      </div>
+
+      <!-- TAB 1: 5KM大盘看板 -->
+      <div id="tab-macro" class="tab-content active">
+        <div class="kpi-grid">
+          <div class="kpi-item">
+            <div class="kpi-val">33+</div>
+            <div class="kpi-label">5KM辐射代表小区</div>
+          </div>
+          <div class="kpi-item">
+            <div class="kpi-val">9 所</div>
+            <div class="kpi-label">覆盖公办小学</div>
+          </div>
+          <div class="kpi-item">
+            <div class="kpi-val">6 所</div>
+            <div class="kpi-label">对口初中矩阵</div>
+          </div>
+          <div class="kpi-item">
+            <div class="kpi-val highlight-red">50.8%</div>
+            <div class="kpi-label">津南中考普高率</div>
+          </div>
+        </div>
+
+        <!-- Middle School Pass Rate Benchmark -->
+        <div class="card">
+          <div class="card-title">
+            <span>🎯 5公里内主要初中升学实力排行 (2025实测)</span>
+            <span class="badge-pill pill-tier1">中考硬指标</span>
+          </div>
+          <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">普高录取率 & 考取市重点（咸一中/六区高中）高分率：</p>
+
+          <div style="margin-bottom:8px;">
+            <div class="stat-row">
+              <span>海河教育园区南开学校（初中部）</span>
+              <span class="stat-value highlight-gold">普高 82.0% | 市六区重点 45%+</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width: 82%; background: linear-gradient(90deg, #3b82f6, #f59e0b);"></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:8px;">
+            <div class="stat-row">
+              <span>咸水沽第二中学（初中部·区属龙头）</span>
+              <span class="stat-value highlight-red">普高 68.5% | 咸一中 18.5%</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width: 68.5%; background: linear-gradient(90deg, #06b6d4, #ef4444);"></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:8px;">
+            <div class="stat-row">
+              <span>咸水沽第四中学（骨干优质初中）</span>
+              <span class="stat-value">普高 62.0% | 咸一中 13.0%</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width: 62%; background: #0ea5e9;"></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:8px;">
+            <div class="stat-row">
+              <span>咸水沽第五中学（金御最近新锐初中）</span>
+              <span class="stat-value">普高 55.0% | 咸一中 9.2%</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width: 55%; background: #8b5cf6;"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="stat-row">
+              <span>咸水沽第三中学（稳健型完中初中）</span>
+              <span class="stat-value">普高 53.5% | 咸一中 8.5%</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" style="width: 53.5%; background: #64748b;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Target High School Milestones -->
+        <div class="card">
+          <div class="card-title">
+            <span>🏛️ 津南终极升学目标高中分数线</span>
+            <span class="badge-pill pill-tier1">满分800分</span>
+          </div>
+          <div class="stat-row">
+            <span>咸水沽第一中学（市重点/示范高中）</span>
+            <span class="stat-value highlight-red">717.3 分 (全区前7-8%)</span>
+          </div>
+          <div class="stat-row">
+            <span>咸水沽第二中学（区重点完中高中部）</span>
+            <span class="stat-value highlight-gold">约 670 分 (全区前20-25%)</span>
+          </div>
+          <div class="stat-row">
+            <span>全区普通高中最低控制分数线</span>
+            <span class="stat-value">约 525 分 (分流生死线)</span>
+          </div>
+          <p style="font-size:10.5px; color:#94a3b8; margin-top:6px; line-height:1.4;">
+            💡 <strong>顾问谈资：</strong>津南区五成学生无法升入公办普高。初中在咸二中、咸四中重点班是考取咸一中的核心胜负手！
+          </p>
+        </div>
+
+        <!-- Active Selected Entity Details Card -->
+        <div id="selected-detail-card" class="card" style="border-color: #38bdf8; background: rgba(14, 165, 233, 0.08);">
+          <div class="card-title">
+            <span id="detail-title">📍 当前选中小区/学校</span>
+            <span class="badge-pill pill-tier2" id="detail-badge">金御花园</span>
+          </div>
+          <div id="detail-body" style="font-size:11.5px; color:#cbd5e1; line-height:1.6;">
+            点击地图上的任意小区或学校标记，此处将实时展示详细办学指标、对口划片、升学率及锐满分定制辅导方案。
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: 小区-学校对口速查 -->
+      <div id="tab-query" class="tab-content">
+        <div style="font-size:12px; color:#94a3b8; margin-bottom:10px;">
+          按距<strong>锐满分教育（金御花园）</strong>距离排序，点击可直接在地图定位并穿透升学链路：
+        </div>
+        <div id="community-list-container">
+          <!-- Dynamically populated by JS -->
+        </div>
+      </div>
+
+      <!-- TAB 3: 锐满分拓客与面咨作战室 -->
+      <div id="tab-strategy" class="tab-content">
+        <div class="card">
+          <div class="card-title">
+            <span>🎯 金御花园周边核心客群攻单策略</span>
+            <span class="badge-pill pill-tier1">成交密码</span>
+          </div>
+          
+          <div class="strategy-item">
+            <strong style="color:#38bdf8;">1. 金御花园 / 金才园 / 世纪佳园（对口咸六小）</strong><br>
+            <strong>生源痛点：</strong>新楼盘年轻家庭多，校内抓基础较稳，但尖子生缺乏拔高思维。小升初面临第二学区摇号咸二中/咸五中。<br>
+            <strong>课程切入：</strong>主推“小学奥数思维进阶班”与“初一数理早培先导课”。告知家长：“六小校内95分并不等于安全，小升初分班考需要初中代数思维提前铺垫！”
+          </div>
+
+          <div class="strategy-item">
+            <strong style="color:#f59e0b;">2. 富力又一城（合祥/合力/合茂等·对口津南实验小学）</strong><br>
+            <strong>生源痛点：</strong>全区最高付费能力群体，家长教育预期极高（必冲咸一中）。校内竞争极其激烈，校内双减但私下极其内卷。<br>
+            <strong>课程切入：</strong>主打“实验小学培优定制1对1”与“中考强基直通班”。切中家长“不想在名校里被甩下”的焦虑，高客单大单成交主战场。
+          </div>
+
+          <div class="strategy-item">
+            <strong style="color:#a855f7;">3. 滨河雅园 / 博雅花园 / 金芳园（对口咸五小）</strong><br>
+            <strong>生源痛点：</strong>素质活动多，孩子综合素养好但理科计算和专注力易波动。<br>
+            <strong>课程切入：</strong>主打“高效学习习惯晚托”与“期末考点精准冲刺A+”。
+          </div>
+
+          <div class="strategy-item">
+            <strong style="color:#ef4444;">4. 初中生（咸二中 / 咸四中 / 咸五中 / 咸三中）</strong><br>
+            <strong>生源痛点：</strong>初一8门科目猛增（满分800分），初二物理几何爆发断崖式下滑，50%中考淘汰率迫在眉睫。<br>
+            <strong>课程切入：</strong>主打“初中全科1对1提分”与“中考冲刺保普高/冲咸一中签约协议班”。
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>⚡ 课程顾问现场面咨黄金3步法</span>
+          </div>
+          <div class="pathway-box" style="margin-top:4px;">
+            <div class="step-item">
+              <div class="step-icon">1</div>
+              <div>
+                <strong style="color:#fff; font-size:11px;">定位坐标 & 破除信息盲盒</strong>
+                <p style="font-size:10.5px; color:#94a3b8;">在地图上点出家长所在小区与学校，展示全区中考50.8%普高残酷率，打破校内“全优成绩单”假象。</p>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-icon">2</div>
+              <div>
+                <strong style="color:#fff; font-size:11px;">明确梯队 & 锁定咸一中分值</strong>
+                <p style="font-size:10.5px; color:#94a3b8;">拆解中考800分中语文120、数学120、物理化学200分的分值模型，算出冲刺咸一中（717.3分）各科容错率。</p>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-icon">3</div>
+              <div>
+                <strong style="color:#fff; font-size:11px;">推出锐满分定制解决方案</strong>
+                <p style="font-size:10.5px; color:#94a3b8;">“咱们金御花园校区离家仅300米，名师面对面诊断错题，每周帮孩子扫除盲区，立即安排全科诊断测评！”</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast">已成功定位并高亮升学全链路！</div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <script>
+    // -------------------------------------------------------------
+    // 1. DATA REPOSITORY
+    // -------------------------------------------------------------
+    const CENTER_POINT = {
+      name: "锐满分教育（金御花园校区）",
+      coords: [38.9786, 117.3822],
+      desc: "津南咸水沽核心教学基地 | 5KM半径教育资源辐射原点",
+      address: "天津市津南区咸水沽镇津南大道金御花园商业区（近咸水沽西站）"
+    };
+
+    const SCHOOLS = [
+      // 高中
+      {
+        id: "high_1",
+        type: "high",
+        name: "咸水沽第一中学（咸一中）",
+        coords: [38.9980, 117.3750],
+        tier: "第一梯队（市重点/国家级示范）",
+        distance: "2.3 km",
+        admissionScore: "717.3分 (2025年) / 722分 (2023年)",
+        passRate: "高考本科率接近100%，特控一本率超82%",
+        desc: "津南区高中唯一天花板，全区尖子生终极殿堂，每年全区仅招收约800人（全区排位前7-8%）。"
+      },
+      {
+        id: "high_2",
+        type: "high",
+        name: "咸水沽第二中学（高中部）",
+        coords: [38.9890, 117.3880],
+        tier: "第二梯队（区级重点完中）",
+        distance: "1.4 km",
+        admissionScore: "约 670 分 (2025年)",
+        passRate: "高考本科率超85%，津南区第二梯队领跑者",
+        desc: "咸水沽传统骨干高中，第二梯队首选保底强校，生源整齐，校风严谨。"
+      },
+
+      // 初中
+      {
+        id: "mid_2",
+        type: "middle",
+        name: "咸水沽第二中学（初中部）",
+        coords: [38.9890, 117.3880],
+        tier: "第一梯队（全区公办初中龙头）",
+        distance: "1.4 km",
+        passRate: "中考普高率约 68.5% | 咸一中录取率约 18.5%",
+        desc: "咸水沽中考成绩最强初中！每年考取咸一中人数常年位列全区前列，第二学区家长摇号最核心争夺目标。"
+      },
+      {
+        id: "mid_4",
+        type: "middle",
+        name: "咸水沽第四中学",
+        coords: [38.9850, 117.3940],
+        tier: "第一/二梯队（骨干优质初中）",
+        distance: "1.3 km",
+        passRate: "中考普高率约 62.0% | 咸一中录取率约 13.0%",
+        desc: "咸水沽镇核心公办初中，重点班学风极佳，考入咸一中与咸二中高中部人数众多。"
+      },
+      {
+        id: "mid_5",
+        type: "middle",
+        name: "咸水沽第五中学",
+        coords: [38.9730, 117.3910],
+        tier: "第二梯队（金御最近新锐初中）",
+        distance: "1.1 km",
+        passRate: "中考普高率约 55.0% | 咸一中录取率约 9.2%",
+        desc: "新校区硬件一流，毗邻金御花园片区，青年教师多，生源规模与成绩逐年攀升。"
+      },
+      {
+        id: "mid_3",
+        type: "middle",
+        name: "咸水沽第三中学",
+        coords: [38.9920, 117.3950],
+        tier: "第二梯队（稳健型公办）",
+        distance: "1.8 km",
+        passRate: "中考普高率约 53.5% | 咸一中录取率约 8.5%",
+        desc: "覆盖咸水沽中北部生源，普通工薪家庭为主，两极分化明显，头部重点班成绩优良。"
+      },
+      {
+        id: "mid_nk",
+        type: "middle",
+        name: "海河教育园区南开学校（初中部）",
+        coords: [38.9950, 117.3380],
+        tier: "特级（享市内六区中考特权）",
+        distance: "4.2 km",
+        passRate: "中考普高率约 82.0% | 市六区重点高中超 45%",
+        desc: "九年一贯直升，海教园户籍+学籍可报考面向市内六区高中，全区升学天花板。"
+      },
+      {
+        id: "mid_sqh",
+        type: "middle",
+        name: "双桥河中学",
+        coords: [38.9710, 117.4410],
+        tier: "第三梯队（镇域普通完中）",
+        distance: "5.1 km",
+        passRate: "中考普高率约 48.0%",
+        desc: "辐射双桥河镇域村居及还迁社区，满足就近入学需求。"
+      },
+
+      // 小学
+      {
+        id: "pri_6",
+        type: "primary",
+        name: "咸水沽第六小学",
+        coords: [38.9760, 117.3880],
+        tier: "第二梯队（金御花园直属对口）",
+        distance: "0.6 km",
+        desc: "紧邻金御花园与世纪佳园，现代化校区，书香校园示范校，为金御花园第一对口公办小学！",
+        pairMiddles: ["mid_5", "mid_2", "mid_4", "mid_3"],
+        onCatchment: "金御花园、金才园、金浩园、世纪佳园、水岸华庭、城市亮点、艺树澜庭、吾悦华府等"
+      },
+      {
+        id: "pri_exp_main",
+        type: "primary",
+        name: "津南区实验小学（本部）",
+        coords: [38.9950, 117.3860],
+        tier: "第一梯队（全区公办第一品牌）",
+        distance: "2.0 km",
+        desc: "天津市首批3A学校，津南区第一名小，师资雄厚，奥数与大阅读底蕴深厚，生源极其拔尖。",
+        pairMiddles: ["mid_2", "mid_4", "mid_3", "mid_5"],
+        onCatchment: "丰收路原住民核心区、聚福园等"
+      },
+      {
+        id: "pri_exp_hx",
+        type: "primary",
+        name: "津南区实验小学（合祥园校区/富力又一城）",
+        coords: [38.9930, 117.4100],
+        tier: "第一梯队（富力高端优质校区）",
+        distance: "2.7 km",
+        desc: "实验小学集团化分校，全面导入本部优质教研体系，高净值业主子女云集，学习氛围极其内卷。",
+        pairMiddles: ["mid_2", "mid_4", "mid_5", "mid_3"],
+        onCatchment: "富力又一城（合祥园、合力园、合安园、合茂园、合居园、合盈园等全域）"
+      },
+      {
+        id: "pri_4",
+        type: "primary",
+        name: "咸水沽第四小学",
+        coords: [38.9860, 117.3980],
+        tier: "第一梯队（老牌书香名校）",
+        distance: "1.6 km",
+        desc: "全国楹联教育示范基地，咸水沽老城区名校，常规管理极其规矩，语文学科实力全区享誉。",
+        pairMiddles: ["mid_2", "mid_4", "mid_3", "mid_5"],
+        onCatchment: "光华里、光明里、凤明里、月坛商圈成熟住宅区"
+      },
+      {
+        id: "pri_5",
+        type: "primary",
+        name: "咸水沽第五小学",
+        coords: [38.9820, 117.4050],
+        tier: "第二梯队（科技创客新锐校）",
+        distance: "2.1 km",
+        desc: "天津市青少年科技教育示范校，STEM创客社团与无人机全市领跑，覆盖滨河与博雅改善盘。",
+        pairMiddles: ["mid_2", "mid_5", "mid_4", "mid_3"],
+        onCatchment: "滨河雅园、博雅花园、金石里、金芳园、金朗园等"
+      },
+      {
+        id: "pri_3",
+        type: "primary",
+        name: "咸水沽第三小学",
+        coords: [38.9910, 117.3920],
+        tier: "第二梯队（稳健骨干校）",
+        distance: "1.7 km",
+        desc: "历史悠久，学风扎实，注重课本基础过关与阳光体育，覆盖密集居住片区。",
+        pairMiddles: ["mid_3", "mid_2", "mid_4", "mid_5"],
+        onCatchment: "北斗公寓、惠丰花园、沽上江南、米兰阳光等"
+      },
+      {
+        id: "pri_7",
+        type: "primary",
+        name: "咸水沽第七小学",
+        coords: [38.9690, 117.4150],
+        tier: "第三梯队（综合保障校）",
+        distance: "3.1 km",
+        desc: "金茂路标准化校区，校园足球特色，承担还迁及随迁统筹学位保障任务。",
+        pairMiddles: ["mid_5", "mid_3", "mid_2", "mid_4"],
+        onCatchment: "金茂路周边居住区、合营村还迁区、随迁统筹"
+      },
+      {
+        id: "pri_nk",
+        type: "primary",
+        name: "海河教育园区南开学校（小学部）",
+        coords: [38.9950, 117.3380],
+        tier: "第一梯队（九年一贯旗舰）",
+        distance: "4.2 km",
+        desc: "南开天大直属支持，全区生源素质天花板，小学初中九年一贯贯通培养。",
+        pairMiddles: ["mid_nk"],
+        onCatchment: "海教园海棠街商品房（文尚、明尚、仁恒海和院等）"
+      },
+      {
+        id: "pri_sqh",
+        type: "primary",
+        name: "双桥河第一小学",
+        coords: [38.9720, 117.4380],
+        tier: "第三梯队（乡镇完小）",
+        distance: "4.9 km",
+        desc: "双桥河镇中心完小，对口直升双桥河中学。",
+        pairMiddles: ["mid_sqh"],
+        onCatchment: "双桥河聚和园、周边村居"
+      }
+    ];
+
+    const COMMUNITIES = [
+      { name: "金御花园（校区驻地）", coords: [38.9786, 117.3822], dist: "0.0 km", zone: "0-1KM核心圈", households: "约1800户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "锐满分教育校区所在小区，步行1分钟即达，近咸水沽西站，六小核心对口。" },
+      { name: "金才园", coords: [38.9795, 117.3800], dist: "0.2 km", zone: "0-1KM核心圈", households: "约1200户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "紧邻地铁8号线咸水沽西站A口，交通便利，六小对口生源。" },
+      { name: "金浩园", coords: [38.9765, 117.3840], dist: "0.3 km", zone: "0-1KM核心圈", households: "约1400户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "金御花园南侧成熟住宅区，步行5分钟至校区，生源密集。" },
+      { name: "诚信里", coords: [38.9790, 117.3860], dist: "0.3 km", zone: "0-1KM核心圈", households: "约800户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "紧邻校区东侧，工薪改善型生源，六小对口。" },
+      { name: "城市亮点", coords: [38.9815, 117.3850], dist: "0.4 km", zone: "0-1KM核心圈", households: "约1100户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "津南大道北侧品质住宅，家长注重课后提升与托管。" },
+      { name: "艺树澜庭", coords: [38.9740, 117.3830], dist: "0.5 km", zone: "0-1KM核心圈", households: "约900户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "低密洋房改善小区，家长对素质教育与学科拔高均有诉求。" },
+      { name: "水岸华庭", coords: [38.9805, 117.3885], dist: "0.6 km", zone: "0-1KM核心圈", households: "约1300户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "紧邻河道景观，入住率高，小学生源活跃，六小对口。" },
+      { name: "世纪佳园", coords: [38.9750, 117.3890], dist: "0.6 km", zone: "0-1KM核心圈", households: "约2200户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "咸水沽南部超级大社区，就在六小正门南侧，生源池巨大！" },
+      { name: "吾悦华府", coords: [38.9770, 117.3930], dist: "0.9 km", zone: "0-1KM核心圈", households: "约1500户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "新城吾悦广场商圈高品质次新盘，年轻中产白领聚集，高客单意向强。" },
+      { name: "富力又一城·合祥园", coords: [38.9930, 117.4100], dist: "2.7 km", zone: "1-3KM黄金圈", households: "约2500户", primarySchoolId: "pri_exp_hx", primarySchoolName: "津南区实验小学（合祥园校区）", middleDesc: "第二学区派位（必选咸二中、咸四中首志愿）", targetHigh: "咸水沽一中（全区最高达线目标）", desc: "津南最具消费力居住板块，实验小学对口，家长全员鸡娃冲咸一中！" },
+      { name: "富力又一城·合力园", coords: [38.9920, 117.4080], dist: "2.5 km", zone: "1-3KM黄金圈", households: "约2000户", primarySchoolId: "pri_exp_hx", primarySchoolName: "津南区实验小学（合祥园校区）", middleDesc: "第二学区派位（争夺咸二中重点班）", targetHigh: "咸一中 / 咸二中", desc: "富力核心组团，生源素质优异，奥数与小升初分班拔尖需求旺盛。" },
+      { name: "富力又一城·合安园", coords: [38.9910, 117.4060], dist: "2.3 km", zone: "1-3KM黄金圈", households: "约1800户", primarySchoolId: "pri_exp_hx", primarySchoolName: "津南区实验小学（合祥园校区）", middleDesc: "第二学区派位（咸二中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "紧靠富力商街，家长群互动频繁，口碑转介绍极高区域。" },
+      { name: "富力又一城·合茂园", coords: [38.9940, 117.4130], dist: "2.9 km", zone: "1-3KM黄金圈", households: "约2200户", primarySchoolId: "pri_exp_hx", primarySchoolName: "津南区实验小学（合祥园校区）", middleDesc: "第二学区派位（咸二中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "富力东部主力组团，高年级小初衔接刚需极其迫切。" },
+      { name: "滨河雅园", coords: [38.9800, 117.4010], dist: "1.7 km", zone: "1-3KM黄金圈", households: "约1600户", primarySchoolId: "pri_5", primarySchoolName: "咸水沽第五小学", middleDesc: "第二学区派位（咸二中/咸五中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "津南大道沿线大型社区，对口五小，注重孩子全面素养与提分。" },
+      { name: "博雅花园", coords: [38.9810, 117.4030], dist: "1.8 km", zone: "1-3KM黄金圈", households: "约1800户", primarySchoolId: "pri_5", primarySchoolName: "咸水沽第五小学", middleDesc: "第二学区派位（咸二中/咸五中）", targetHigh: "咸一中 / 咸二中", desc: "咸水沽五小主力划片小区，中产家庭聚集，课外辅导习惯好。" },
+      { name: "金芳园", coords: [38.9840, 117.4070], dist: "2.2 km", zone: "1-3KM黄金圈", households: "约1900户", primarySchoolId: "pri_5", primarySchoolName: "咸水沽第五小学", middleDesc: "第二学区派位（咸五中/咸二中）", targetHigh: "咸一中 / 咸二中", desc: "五小正对口小区，学生放学步行可达五小，晚托辅导需求密集。" },
+      { name: "金石里 / 金石南里", coords: [38.9830, 117.4020], dist: "1.8 km", zone: "1-3KM黄金圈", households: "约1500户", primarySchoolId: "pri_5", primarySchoolName: "咸水沽第五小学", middleDesc: "第二学区派位（咸二中/咸五中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "成熟工薪改善社区，生源基础两极分化，提优补差刚需突出。" },
+      { name: "惠丰花园", coords: [38.9900, 117.3930], dist: "1.6 km", zone: "1-3KM黄金圈", households: "约1700户", primarySchoolId: "pri_3", primarySchoolName: "咸水沽第三小学", middleDesc: "第二学区派位（咸二中/咸三中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "咸水沽三小对口核心小区，家长偏爱务实提分，重视单科补强。" },
+      { name: "沽上江南", coords: [38.9880, 117.3920], dist: "1.3 km", zone: "1-3KM黄金圈", households: "约1200户", primarySchoolId: "pri_3", primarySchoolName: "咸水沽第三小学", middleDesc: "第二学区派位（咸二中/咸四中/咸三中）", targetHigh: "咸一中 / 咸二中", desc: "地理位置优越，靠近津南主干道，中小学生源占比高。" },
+      { name: "北斗公寓 / 惠裕里", coords: [38.9920, 117.3910], dist: "1.7 km", zone: "1-3KM黄金圈", households: "约1400户", primarySchoolId: "pri_3", primarySchoolName: "咸水沽第三小学", middleDesc: "第二学区派位（咸三中/咸二中）", targetHigh: "咸一中 / 咸二中", desc: "咸三小与老城区居住区，学生两极分化明显，需要习惯纠偏。" },
+      { name: "光华东里 / 光华西里", coords: [38.9870, 117.3960], dist: "1.5 km", zone: "1-3KM黄金圈", households: "约1600户", primarySchoolId: "pri_4", primarySchoolName: "咸水沽第四小学", middleDesc: "第二学区派位（咸二中/咸四中主力）", targetHigh: "咸一中 / 咸二中", desc: "月坛商圈老牌名片，对口咸四小，语文底蕴好，家长信任传统品牌。" },
+      { name: "光明北里 / 光明南里", coords: [38.9880, 117.3980], dist: "1.7 km", zone: "1-3KM黄金圈", households: "约1800户", primarySchoolId: "pri_4", primarySchoolName: "咸水沽第四小学", middleDesc: "第二学区派位（咸四中/咸二中）", targetHigh: "咸一中 / 咸二中", desc: "咸四小对口密集社区，数学与英语外教课外加码比例高。" },
+      { name: "聚福园 / 丰收里", coords: [38.9940, 117.3870], dist: "1.8 km", zone: "1-3KM黄金圈", households: "约1500户", primarySchoolId: "pri_exp_main", primarySchoolName: "津南区实验小学（本部）", middleDesc: "第二学区派位（咸二中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "津南实小本部划片，原住民与体制内家庭多，升学意愿极强。" },
+      { name: "仁恒海和院（海教园）", coords: [38.9920, 117.3420], dist: "3.7 km", zone: "3-5KM辐射圈", households: "约1600户", primarySchoolId: "pri_nk", primarySchoolName: "海河教育园区南开学校", middleDesc: "九年一贯制直升南开学校初中部", targetHigh: "市内六区“市五所”（南开/一中/耀华等）", desc: "海教园高端改善盘，高校教授及企业高管家庭，直通六区中考！" },
+      { name: "文尚花园 / 明尚花园（海教园）", coords: [38.9940, 117.3460], dist: "3.6 km", zone: "3-5KM辐射圈", households: "约2400户", primarySchoolId: "pri_nk", primarySchoolName: "海河教育园区南开学校", middleDesc: "直升南开学校初中部（享六区中考）", targetHigh: "市内六区重点高中 / 咸一中", desc: "南开大学天大旁，高知家庭集中，课外高难竞赛辅导需求大。" },
+      { name: "景慧佳苑 / 雅润园（海教园）", coords: [38.9860, 117.3480], dist: "3.1 km", zone: "3-5KM辐射圈", households: "约2000户", primarySchoolId: "pri_nk", primarySchoolName: "海河教育园区南开学校", middleDesc: "直升南开学校初中部", targetHigh: "市内六区重点高中", desc: "雅润路校区周边，年轻科研落户家庭聚集。" },
+      { name: "双桥河聚和园", coords: [38.9710, 117.4350], dist: "4.7 km", zone: "3-5KM辐射圈", households: "约1800户", primarySchoolId: "pri_sqh", primarySchoolName: "双桥河第一小学", middleDesc: "对口直升双桥河中学", targetHigh: "咸水沽二中 / 葛沽一中", desc: "双桥河镇大型居住区，基础较薄弱，需保普高托底辅导。" }
+    ];
+
+    // -------------------------------------------------------------
+    // 2. DUAL-ENGINE ARCHITECTURE (Leaflet & Vector Canvas)
+    // -------------------------------------------------------------
+    let currentEngine = 'leaflet'; // 'leaflet' or 'canvas'
+    let leafletMap = null;
+    let leafletMarkers = [];
+    let leafletCircles = [];
+    let leafletLines = [];
+    let currentFilter = 'all';
+
+    // Canvas State
+    let canvas, ctx;
+    let canvasZoomLevel = 1.0;
+    let canvasPanX = 0, canvasPanY = 0;
+    let isDragging = false;
+    let startX, startY;
+    let selectedEntity = null;
+    let highlightedPath = null;
+    let showRadiusCircles = true;
+    let showPathwayLines = true;
+
+    function initApplication() {
+      // 1. Check if Leaflet L is defined
+      if (typeof L !== 'undefined') {
+        initLeaflet();
+      } else {
+        console.warn("Leaflet not available, auto-switching to Offline Vector GIS Canvas Engine");
+        switchToCanvasEngine();
+      }
+
+      // 2. Init Canvas anyway as offline fallback
+      initCanvasEngine();
+
+      // 3. Populate Communities tab
+      populateCommunityList(COMMUNITIES);
+
+      // Default highlight Jinyu Huayuan
+      setTimeout(() => {
+        highlightPathwayForCommunity("金御花园（校区驻地）");
+      }, 500);
+    }
+
+    // -------------------------------------------------------------
+    // 3. LEAFLET INITIALIZATION
+    // -------------------------------------------------------------
+    function initLeaflet() {
+      try {
+        leafletMap = L.map('map', {
+          center: CENTER_POINT.coords,
+          zoom: 14,
+          minZoom: 11,
+          maxZoom: 18,
+          zoomControl: false
+        });
+
+        L.control.zoom({ position: 'topright' }).addTo(leafletMap);
+
+        const darkTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; CARTO &copy; OpenStreetMap',
+          subdomains: 'abcd',
+          maxZoom: 19
+        });
+
+        const amapTile = L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+          subdomains: ["1", "2", "3", "4"],
+          attribution: '&copy; 高德地图'
+        });
+
+        darkTile.addTo(leafletMap);
+
+        // Tile load error listener -> fallback to amap or canvas
+        darkTile.on('tileerror', function() {
+          console.warn("Tile load error on CartoDB, attempting fallback...");
+        });
+
+        // Add circles
+        drawLeafletCircles();
+
+        // Add markers
+        plotLeafletMarkers();
+
+        document.getElementById('engine-text').innerText = "在线高精度GIS (Leaflet)";
+        document.getElementById('engine-icon').innerText = "🌐";
+      } catch (e) {
+        console.error("Leaflet init failed, fallback to Canvas:", e);
+        switchToCanvasEngine();
+      }
+    }
+
+    function drawLeafletCircles() {
+      const c1 = L.circle(CENTER_POINT.coords, {
+        radius: 1000,
+        color: '#10b981',
+        weight: 1.5,
+        dashArray: '5, 6',
+        fillColor: '#10b981',
+        fillOpacity: 0.05
+      }).bindTooltip("🟢 1KM 核心步行圈", { direction: 'right' });
+
+      const c3 = L.circle(CENTER_POINT.coords, {
+        radius: 3000,
+        color: '#38bdf8',
+        weight: 1.5,
+        dashArray: '6, 8',
+        fillColor: '#38bdf8',
+        fillOpacity: 0.03
+      }).bindTooltip("🔵 3KM 黄金客群圈", { direction: 'right' });
+
+      const c5 = L.circle(CENTER_POINT.coords, {
+        radius: 5000,
+        color: '#a855f7',
+        weight: 1.8,
+        dashArray: '8, 10',
+        fillColor: '#a855f7',
+        fillOpacity: 0.02
+      }).bindTooltip("🟣 5KM 战略辐射圈", { direction: 'right' });
+
+      leafletCircles = [c1, c3, c5];
+      leafletCircles.forEach(c => c.addTo(leafletMap));
+    }
+
+    function plotLeafletMarkers() {
+      // Center Marker
+      const centerHtml = `
+        <div style="position:relative; width:48px; height:48px;">
+          <div class="radar-pulse-wave"></div>
+          <div class="radar-pulse-core"></div>
+        </div>
+      `;
+      const centerIcon = L.divIcon({ className: 'custom-marker', html: centerHtml, iconSize: [48, 48], iconAnchor: [24, 24] });
+      L.marker(CENTER_POINT.coords, { icon: centerIcon, zIndexOffset: 1000 }).addTo(leafletMap)
+        .bindPopup(`<strong style="color:#f43f5e; font-size:13px;">📍 ${CENTER_POINT.name}</strong><br><span style="font-size:11px; color:#94a3b8;">${CENTER_POINT.address}</span>`);
+
+      // Schools
+      SCHOOLS.forEach(s => {
+        let mClass = s.type === 'primary' ? 'marker-primary' : (s.type === 'middle' ? 'marker-middle' : 'marker-high');
+        let iconSymbol = s.type === 'primary' ? '🏫' : (s.type === 'middle' ? '🎓' : '🏛️');
+        let sName = s.name.replace("天津市", "").replace("津南区", "");
+        if (sName.length > 9) sName = sName.substring(0, 9);
+
+        const html = `<div class="marker-badge ${mClass}"><span>${iconSymbol}</span><span>${sName}</span></div>`;
+        const icon = L.divIcon({ className: 'custom-marker', html: html, iconSize: [110, 26], iconAnchor: [55, 13] });
+        const m = L.marker(s.coords, { icon: icon }).addTo(leafletMap);
+        m.entityData = s;
+        m.entityType = 'school';
+
+        m.bindPopup(`
+          <div style="min-width:240px;">
+            <strong style="color:#fff; font-size:13px;">${s.name}</strong>
+            <div style="font-size:11px; color:#38bdf8; margin:4px 0;">${s.tier} | 距锐满分：${s.distance}</div>
+            ${s.admissionScore ? `<div style="font-size:11px; color:#fbbf24;">🎯 中考线：${s.admissionScore}</div>` : ''}
+            ${s.passRate ? `<div style="font-size:11px; color:#34d399;">📈 升学率：${s.passRate}</div>` : ''}
+            <div style="font-size:11px; color:#cbd5e1; margin-top:6px;">${s.desc}</div>
+          </div>
+        `);
+        m.on('click', () => showSchoolDetail(s));
+        leafletMarkers.push(m);
+      });
+
+      // Communities
+      COMMUNITIES.forEach(c => {
+        const html = `<div class="marker-badge marker-community"><span>🏘️</span><span>${c.name.split('（')[0]}</span></div>`;
+        const icon = L.divIcon({ className: 'custom-marker', html: html, iconSize: [95, 22], iconAnchor: [47, 11] });
+        const m = L.marker(c.coords, { icon: icon }).addTo(leafletMap);
+        m.entityData = c;
+        m.entityType = 'community';
+
+        m.bindPopup(`
+          <div style="min-width:240px;">
+            <strong style="color:#10b981; font-size:13px;">${c.name}</strong>
+            <div style="font-size:11px; color:#94a3b8; margin:4px 0;">${c.zone} | 距校区：${c.dist}</div>
+            <div style="background:rgba(16,185,129,0.1); padding:6px; font-size:11px; border-left:3px solid #10b981;">
+              <div>🏫 小学：${c.primarySchoolName}</div>
+              <div>🎓 初中：${c.middleDesc}</div>
+              <div>🏛️ 目标：${c.targetHigh}</div>
+            </div>
+            <button onclick="highlightPathwayForCommunity('${c.name}')" style="margin-top:6px; width:100%; background:#10b981; color:#064e3b; border:none; padding:4px; font-weight:700; border-radius:4px; cursor:pointer;">⚡ 透视升学链路</button>
+          </div>
+        `);
+        m.on('click', () => {
+          showCommunityDetail(c);
+          highlightPathwayForCommunity(c.name);
+        });
+        leafletMarkers.push(m);
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 4. BUILT-IN VECTOR GIS CANVAS ENGINE (100% OFFLINE CAPABLE)
+    // -------------------------------------------------------------
+    function initCanvasEngine() {
+      canvas = document.getElementById('offline-canvas');
+      ctx = canvas.getContext('2d');
+      resizeCanvas();
+      window.addEventListener('resize', () => {
+        resizeCanvas();
+        if (currentEngine === 'canvas') drawCanvas();
+      });
+
+      // Pan & Zoom Events for Canvas
+      canvas.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX - canvasPanX;
+        startY = e.clientY - canvasPanY;
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        canvasPanX = e.clientX - startX;
+        canvasPanY = e.clientY - startY;
+        if (currentEngine === 'canvas') drawCanvas();
+      });
+
+      window.addEventListener('mouseup', () => { isDragging = false; });
+
+      canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const factor = e.deltaY < 0 ? 1.15 : 0.85;
+        canvasZoom(factor, e.clientX, e.clientY);
+      });
+
+      // Canvas click detection for markers
+      canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Check if hit any marker
+        const allEntities = [
+          ...SCHOOLS.map(s => ({ ...s, isSchool: true })),
+          ...COMMUNITIES.map(c => ({ ...c, isCommunity: true })),
+          { ...CENTER_POINT, isCenter: true }
+        ];
+
+        for (let item of allEntities) {
+          const pt = latLngToCanvas(item.coords[0], item.coords[1]);
+          const dist = Math.hypot(pt.x - mouseX, pt.y - mouseY);
+          if (dist < 18) {
+            if (item.isSchool) showSchoolDetail(item);
+            else if (item.isCommunity) {
+              showCommunityDetail(item);
+              highlightPathwayForCommunity(item.name);
+            }
+            break;
+          }
+        }
+      });
+    }
+
+    function resizeCanvas() {
+      const container = document.getElementById('map-container');
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+    }
+
+    function latLngToCanvas(lat, lng) {
+      // Mercator approximation for small 5km region
+      const centerLat = CENTER_POINT.coords[0];
+      const centerLng = CENTER_POINT.coords[1];
+      const scaleBase = 72000 * canvasZoomLevel;
+
+      const x = canvas.width / 2 + (lng - centerLng) * scaleBase * Math.cos(centerLat * Math.PI / 180) + canvasPanX;
+      const y = canvas.height / 2 - (lat - centerLat) * scaleBase + canvasPanY;
+      return { x, y };
+    }
+
+    function canvasZoom(factor) {
+      canvasZoomLevel *= factor;
+      canvasZoomLevel = Math.max(0.4, Math.min(3.5, canvasZoomLevel));
+      drawCanvas();
+    }
+
+    function drawCanvas() {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Background gradient
+      const bgGrad = ctx.createRadialGradient(canvas.width/2 + canvasPanX, canvas.height/2 + canvasPanY, 20, canvas.width/2 + canvasPanX, canvas.height/2 + canvasPanY, 900 * canvasZoomLevel);
+      bgGrad.addColorStop(0, '#0f172a');
+      bgGrad.addColorStop(1, '#050814');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw Grid lines
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.05)';
+      ctx.lineWidth = 1;
+      const gridSize = 60 * canvasZoomLevel;
+      for (let x = (canvasPanX % gridSize); x < canvas.width; x += gridSize) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = (canvasPanY % gridSize); y < canvas.height; y += gridSize) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      // Draw Major Roads
+      drawCanvasRoads();
+
+      // Draw Concentric Radius Rings
+      if (showRadiusCircles) {
+        drawCanvasCircles();
+      }
+
+      // Draw Pathways
+      if (showPathwayLines && highlightedPath) {
+        drawCanvasPathwayLines();
+      }
+
+      // Draw Entities
+      drawCanvasEntities();
+    }
+
+    function drawCanvasRoads() {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(71, 85, 105, 0.45)';
+      ctx.lineWidth = 4 * canvasZoomLevel;
+      ctx.lineCap = 'round';
+
+      // 津南大道 (Jinnan Ave - East West)
+      const r1_start = latLngToCanvas(38.9790, 117.3400);
+      const r1_end = latLngToCanvas(38.9810, 117.4350);
+      ctx.beginPath(); ctx.moveTo(r1_start.x, r1_start.y); ctx.lineTo(r1_end.x, r1_end.y); ctx.stroke();
+
+      // 二八公路 (Erba Rd - North South)
+      const r2_start = latLngToCanvas(38.9650, 117.3810);
+      const r2_end = latLngToCanvas(38.9990, 117.3820);
+      ctx.beginPath(); ctx.moveTo(r2_start.x, r2_start.y); ctx.lineTo(r2_end.x, r2_end.y); ctx.stroke();
+
+      // 津沽路 (Jingu Rd - Diagonal)
+      const r3_start = latLngToCanvas(38.9740, 117.3750);
+      const r3_end = latLngToCanvas(38.9950, 117.4200);
+      ctx.beginPath(); ctx.moveTo(r3_start.x, r3_start.y); ctx.lineTo(r3_end.x, r3_end.y); ctx.stroke();
+
+      // Road labels
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.45)';
+      ctx.font = `${Math.max(10, 11 * canvasZoomLevel)}px sans-serif`;
+      const pt_jn = latLngToCanvas(38.9795, 117.3700);
+      ctx.fillText("津南大道", pt_jn.x, pt_jn.y - 6);
+      const pt_eb = latLngToCanvas(38.9680, 117.3810);
+      ctx.fillText("二八公路", pt_eb.x + 8, pt_eb.y);
+
+      ctx.restore();
+    }
+
+    function drawCanvasCircles() {
+      const center = latLngToCanvas(CENTER_POINT.coords[0], CENTER_POINT.coords[1]);
+      const metersToPixels = (meters) => (meters / 111320) * 72000 * canvasZoomLevel;
+
+      // 1km Circle
+      ctx.save();
+      ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.7)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(center.x, center.y, metersToPixels(1000), 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = '#10b981';
+      ctx.font = '11px sans-serif';
+      ctx.fillText("🟢 1KM 核心步行圈", center.x + metersToPixels(1000) + 6, center.y);
+
+      // 3km Circle
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
+      ctx.beginPath();
+      ctx.arc(center.x, center.y, metersToPixels(3000), 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillText("🔵 3KM 黄金客群圈", center.x + metersToPixels(3000) + 6, center.y);
+
+      // 5km Circle
+      ctx.strokeStyle = 'rgba(168, 85, 247, 0.7)';
+      ctx.beginPath();
+      ctx.arc(center.x, center.y, metersToPixels(5000), 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = '#c084fc';
+      ctx.fillText("🟣 5KM 战略辐射圈", center.x + metersToPixels(5000) + 6, center.y);
+      ctx.restore();
+    }
+
+    function drawCanvasPathwayLines() {
+      if (!highlightedPath) return;
+      const comm = COMMUNITIES.find(c => c.name === highlightedPath);
+      if (!comm) return;
+      const pri = SCHOOLS.find(s => s.id === comm.primarySchoolId);
+      if (!pri) return;
+
+      const pComm = latLngToCanvas(comm.coords[0], comm.coords[1]);
+      const pPri = latLngToCanvas(pri.coords[0], pri.coords[1]);
+
+      ctx.save();
+      ctx.setLineDash([6, 4]);
+      ctx.lineWidth = 2.5;
+
+      // Comm -> Pri
+      ctx.strokeStyle = '#10b981';
+      ctx.beginPath(); ctx.moveTo(pComm.x, pComm.y); ctx.lineTo(pPri.x, pPri.y); ctx.stroke();
+
+      // Pri -> Middles
+      if (pri.pairMiddles) {
+        pri.pairMiddles.forEach(midId => {
+          const mid = SCHOOLS.find(s => s.id === midId);
+          if (mid) {
+            const pMid = latLngToCanvas(mid.coords[0], mid.coords[1]);
+            ctx.strokeStyle = '#818cf8';
+            ctx.beginPath(); ctx.moveTo(pPri.x, pPri.y); ctx.lineTo(pMid.x, pMid.y); ctx.stroke();
+
+            // Mid -> High
+            const pHigh1 = latLngToCanvas(38.9980, 117.3750); // 咸一中
+            ctx.strokeStyle = '#f59e0b';
+            ctx.beginPath(); ctx.moveTo(pMid.x, pMid.y); ctx.lineTo(pHigh1.x, pHigh1.y); ctx.stroke();
+          }
+        });
+      }
+      ctx.restore();
+    }
+
+    function drawCanvasEntities() {
+      const allEntities = [
+        ...COMMUNITIES.map(c => ({ ...c, isCommunity: true })),
+        ...SCHOOLS.map(s => ({ ...s, isSchool: true }))
+      ];
+
+      allEntities.forEach(item => {
+        // Apply filter
+        if (currentFilter === 'primary' && item.type !== 'primary') return;
+        if (currentFilter === 'middle' && item.type !== 'middle') return;
+        if (currentFilter === 'high' && item.type !== 'high') return;
+        if (currentFilter === 'community' && !item.isCommunity) return;
+        if (currentFilter === 'tier1' && (!item.tier || !item.tier.includes('第一梯队'))) return;
+
+        const pt = latLngToCanvas(item.coords[0], item.coords[1]);
+
+        if (item.isSchool) {
+          let color = item.type === 'primary' ? '#0284c7' : (item.type === 'middle' ? '#7c3aed' : '#d97706');
+          let label = item.name.replace("天津市", "").replace("津南区", "").replace("（本部）", "");
+          if (label.length > 8) label = label.substring(0, 8);
+
+          ctx.save();
+          // Glow
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 8, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 11px sans-serif';
+          ctx.fillText(label, pt.x + 11, pt.y + 4);
+          ctx.restore();
+        } else if (item.isCommunity) {
+          ctx.save();
+          ctx.fillStyle = '#10b981';
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 4.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#a7f3d0';
+          ctx.font = '10px sans-serif';
+          ctx.fillText(item.name.split('（')[0], pt.x + 8, pt.y + 3);
+          ctx.restore();
+        }
+      });
+
+      // Draw Center Point: 锐满分教育
+      const centerPt = latLngToCanvas(CENTER_POINT.coords[0], CENTER_POINT.coords[1]);
+      ctx.save();
+      ctx.shadowColor = '#f43f5e';
+      ctx.shadowBlur = 20;
+
+      // Pulse ring
+      ctx.strokeStyle = 'rgba(244, 63, 94, 0.4)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(centerPt.x, centerPt.y, 22, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Center Core
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.arc(centerPt.x, centerPt.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText("📍 锐满分教育（金御花园）", centerPt.x + 14, centerPt.y + 4);
+      ctx.restore();
+    }
+
+    // Toggle Engine (Leaflet vs Vector Canvas)
+    function toggleEngine() {
+      if (currentEngine === 'leaflet') {
+        switchToCanvasEngine();
+      } else {
+        switchToLeafletEngine();
+      }
+    }
+
+    function switchToCanvasEngine() {
+      currentEngine = 'canvas';
+      document.getElementById('offline-canvas').style.display = 'block';
+      document.getElementById('canvas-controls').style.display = 'flex';
+      document.getElementById('engine-text').innerText = "离线矢量高精引擎 (Canvas)";
+      document.getElementById('engine-icon').innerText = "⚡";
+      drawCanvas();
+      showToast("已切换至【离线矢量高精雷达GIS引擎】（无需外网加载）");
+    }
+
+    function switchToLeafletEngine() {
+      if (typeof L === 'undefined') {
+        showToast("本地无网络环境，维持离线矢量引擎模式");
+        return;
+      }
+      currentEngine = 'leaflet';
+      document.getElementById('offline-canvas').style.display = 'none';
+      document.getElementById('canvas-controls').style.display = 'none';
+      document.getElementById('engine-text').innerText = "在线高精度GIS (Leaflet)";
+      document.getElementById('engine-icon').innerText = "🌐";
+      if (leafletMap) leafletMap.invalidateSize();
+      showToast("已切换至【在线GIS底图引擎】");
+    }
+
+    // -------------------------------------------------------------
+    // 5. CATCHMENT LINK TRACER
+    // -------------------------------------------------------------
+    function highlightPathwayForCommunity(communityName) {
+      highlightedPath = communityName;
+
+      // If Leaflet active
+      if (currentEngine === 'leaflet' && leafletMap) {
+        clearLeafletLines();
+        const comm = COMMUNITIES.find(c => c.name === communityName);
+        if (comm) {
+          const pri = SCHOOLS.find(s => s.id === comm.primarySchoolId);
+          if (pri) {
+            // Line 1: Comm -> Pri
+            const l1 = L.polyline([comm.coords, pri.coords], { color: '#10b981', weight: 3, dashArray: '5, 5' }).addTo(leafletMap);
+            leafletLines.push(l1);
+
+            // Line 2: Pri -> Middles
+            if (pri.pairMiddles) {
+              pri.pairMiddles.forEach(mId => {
+                const mid = SCHOOLS.find(s => s.id === mId);
+                if (mid) {
+                  const l2 = L.polyline([pri.coords, mid.coords], { color: '#818cf8', weight: 2.5, dashArray: '4, 4' }).addTo(leafletMap);
+                  leafletLines.push(l2);
+
+                  // Line 3: Mid -> High
+                  const high = SCHOOLS.find(s => s.id === 'high_1'); // 咸一中
+                  if (high) {
+                    const l3 = L.polyline([mid.coords, high.coords], { color: '#f59e0b', weight: 2 }).addTo(leafletMap);
+                    leafletLines.push(l3);
+                  }
+                }
+              });
+            }
+          }
+        }
+      }
+
+      // If Canvas active
+      if (currentEngine === 'canvas') {
+        drawCanvas();
+      }
+
+      showToast(`已成功透视「${communityName}」全链路：划片小学 → 初中派位 → 目标高中！`);
+      const comm = COMMUNITIES.find(c => c.name === communityName);
+      if (comm) showCommunityDetail(comm);
+    }
+
+    function clearLeafletLines() {
+      leafletLines.forEach(l => leafletMap.removeLayer(l));
+      leafletLines = [];
+    }
+
+    function toggleRadius() {
+      showRadiusCircles = !showRadiusCircles;
+      if (currentEngine === 'leaflet' && leafletMap) {
+        leafletCircles.forEach(c => {
+          if (showRadiusCircles) c.addTo(leafletMap);
+          else leafletMap.removeLayer(c);
+        });
+      } else {
+        drawCanvas();
+      }
+      document.getElementById('btn-toggle-radius').classList.toggle('btn-primary', showRadiusCircles);
+      showToast(showRadiusCircles ? "已开启 5KM 辐射圆环" : "已隐藏辐射圆环");
+    }
+
+    function toggleLinks() {
+      showPathwayLines = !showPathwayLines;
+      if (!showPathwayLines) {
+        clearLeafletLines();
+        highlightedPath = null;
+        if (currentEngine === 'canvas') drawCanvas();
+        showToast("已隐藏对口升学连线");
+      } else {
+        highlightPathwayForCommunity("金御花园（校区驻地）");
+      }
+      document.getElementById('btn-toggle-links').classList.toggle('btn-primary', showPathwayLines);
+    }
+
+    // -------------------------------------------------------------
+    // 6. DETAILS PANEL UPDATER
+    // -------------------------------------------------------------
+    function showCommunityDetail(c) {
+      document.getElementById('detail-title').innerText = `🏘️ ${c.name}`;
+      document.getElementById('detail-badge').innerText = c.zone;
+      document.getElementById('detail-badge').className = "badge-pill pill-tier2";
+
+      const html = `
+        <div style="margin-bottom:8px;">
+          <div class="stat-row"><span>距锐满分教育：</span><strong class="stat-value">${c.dist}</strong></div>
+          <div class="stat-row"><span>住户体量：</span><span>${c.households}</span></div>
+        </div>
+
+        <div class="pathway-box">
+          <div class="step-item">
+            <div class="step-icon" style="background:#0284c7;">小</div>
+            <div>
+              <strong style="color:#38bdf8;">直属划片小学：${c.primarySchoolName}</strong>
+              <p style="color:#94a3b8; font-size:10.5px;">按人户一致免试划片就近入学</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-icon" style="background:#7c3aed;">初</div>
+            <div>
+              <strong style="color:#c084fc;">第二学区多校派位：</strong>
+              <p style="color:#cbd5e1; font-size:10.5px;">随机派位：咸二中、咸四中、咸五中、咸三中</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-icon" style="background:#f59e0b;">高</div>
+            <div>
+              <strong style="color:#fcd34d;">中考目标高中：${c.targetHigh}</strong>
+              <p style="color:#94a3b8; font-size:10.5px;">咸一中需达全区前7% (717.3分)，咸二中前20%</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px; background:rgba(239,68,68,0.1); border-left:3px solid #ef4444; padding:6px; border-radius:4px; font-size:11px; color:#fca5a5;">
+          <strong>锐满分教育转化契机：</strong><br>
+          ${c.desc} 针对该小区生源，建议主打小初衔接与数学高阶思维培优，快速打破家长对校内等第评价的麻痹心理。
+        </div>
+      `;
+      document.getElementById('detail-body').innerHTML = html;
+      switchTab('tab-macro', document.querySelectorAll('.tab-btn')[0]);
+    }
+
+    function showSchoolDetail(s) {
+      document.getElementById('detail-title').innerText = `${s.type === 'primary' ? '🏫' : (s.type === 'middle' ? '🎓' : '🏛️')} ${s.name}`;
+      document.getElementById('detail-badge').innerText = s.tier.split('（')[0];
+      document.getElementById('detail-badge').className = "badge-pill pill-tier1";
+
+      let passRateHtml = s.passRate ? `<div class="stat-row"><span>升学率指标：</span><strong class="stat-value highlight-red">${s.passRate}</strong></div>` : '';
+      let scoreHtml = s.admissionScore ? `<div class="stat-row"><span>中考录取线：</span><strong class="stat-value highlight-gold">${s.admissionScore}</strong></div>` : '';
+      let catchmentHtml = s.onCatchment ? `<div style="margin:6px 0; font-size:11px; color:#cbd5e1;"><strong>对应划片社区：</strong>${s.onCatchment}</div>` : '';
+
+      const html = `
+        <div style="margin-bottom:8px;">
+          <div class="stat-row"><span>距锐满分教育：</span><strong class="stat-value">${s.distance}</strong></div>
+          <div class="stat-row"><span>办学规格：</span><span>${s.tier}</span></div>
+          ${scoreHtml}
+          ${passRateHtml}
+        </div>
+        ${catchmentHtml}
+        <div style="font-size:11px; color:#cbd5e1; line-height:1.5; margin:6px 0;">${s.desc}</div>
+        
+        <div style="background:rgba(56,189,248,0.12); border-left:3px solid #38bdf8; padding:8px; border-radius:4px; font-size:11px; color:#e0f2fe; margin-top:8px;">
+          <strong>锐满分教育针对本校辅导对策：</strong><br>
+          ${getSchoolConsultantStrategy(s)}
+        </div>
+      `;
+      document.getElementById('detail-body').innerHTML = html;
+      switchTab('tab-macro', document.querySelectorAll('.tab-btn')[0]);
+    }
+
+    function getSchoolConsultantStrategy(s) {
+      if (s.id === 'pri_6') {
+        return "【咸水沽六小】紧邻金御校区，学生放学直奔锐满分！主打‘精品晚辅+学习习惯纠正+校内各单元考冲刺满分’，把生源打造成初一咸二中重点班种子。";
+      } else if (s.id && s.id.includes('exp')) {
+        return "【津南实小】生源普遍自视甚高，家长焦虑感最强。切勿推低端托管，主推‘奥数高阶逻辑俱乐部’与‘名校初一先导签约班’，直击咸一中梦想。";
+      } else if (s.id === 'pri_4') {
+        return "【咸水沽四小】传统书香校，语文基本功扎实，数理思维与英语口语是补强点。推‘大语文文言素养+奥数几何思维专题’效果最好。";
+      } else if (s.id === 'mid_2' || s.id === 'mid_4') {
+        return "【咸二中/咸四中初中】初中拔尖主战场！初一初二强化代数、平面几何与物理实验；初三全科签约保咸一中（717.3分大关）。";
+      } else if (s.id === 'high_1') {
+        return "【咸水沽一中】津南中考终极灯塔！需告知家长中考800分中全区仅前7-8%可进入，小学四年级即应建立全科无短板规划。";
+      }
+      return "根据生源学科短板量身定制1对1测评与提分方案，紧扣津南区期中期末区统考出题风格进行针对性辅导。";
+    }
+
+    // -------------------------------------------------------------
+    // 7. TAB 2 COMMUNITY LIST POPULATION
+    // -------------------------------------------------------------
+    function populateCommunityList(list) {
+      const container = document.getElementById('community-list-container');
+      container.innerHTML = "";
+
+      list.forEach(c => {
+        const card = document.createElement('div');
+        card.className = "card";
+        card.style.cursor = "pointer";
+        card.innerHTML = `
+          <div class="card-title">
+            <span>🏘️ ${c.name}</span>
+            <span class="badge-pill pill-tier2">${c.dist}</span>
+          </div>
+          <div class="stat-row"><span>对口小学：</span><strong style="color:#38bdf8;">${c.primarySchoolName}</strong></div>
+          <div class="stat-row"><span>小升初：</span><span style="color:#c084fc;">${c.middleDesc.substring(0, 16)}...</span></div>
+          <div class="stat-row"><span>目标高中：</span><span style="color:#fbbf24;">${c.targetHigh}</span></div>
+        `;
+        card.onclick = () => {
+          if (currentEngine === 'leaflet' && leafletMap) {
+            leafletMap.flyTo(c.coords, 16, { duration: 1 });
+          } else {
+            // Pan canvas
+            const centerLat = CENTER_POINT.coords[0];
+            const centerLng = CENTER_POINT.coords[1];
+            const scaleBase = 72000 * canvasZoomLevel;
+            canvasPanX = -(c.coords[1] - centerLng) * scaleBase * Math.cos(centerLat * Math.PI / 180);
+            canvasPanY = (c.coords[0] - centerLat) * scaleBase;
+            drawCanvas();
+          }
+          highlightPathwayForCommunity(c.name);
+        };
+        container.appendChild(card);
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 8. SEARCH & FILTERING
+    // -------------------------------------------------------------
+    function handleSearch(query) {
+      query = query.trim().toLowerCase();
+      if (!query) {
+        populateCommunityList(COMMUNITIES);
+        return;
+      }
+
+      const filtered = COMMUNITIES.filter(c => 
+        c.name.toLowerCase().includes(query) || 
+        c.primarySchoolName.toLowerCase().includes(query) ||
+        c.middleDesc.toLowerCase().includes(query)
+      );
+      populateCommunityList(filtered);
+
+      const matchedSchool = SCHOOLS.find(s => s.name.toLowerCase().includes(query));
+      if (matchedSchool) {
+        if (currentEngine === 'leaflet' && leafletMap) {
+          leafletMap.flyTo(matchedSchool.coords, 16, { duration: 1 });
+        }
+        showSchoolDetail(matchedSchool);
+        return;
+      }
+
+      if (filtered.length > 0) {
+        if (currentEngine === 'leaflet' && leafletMap) {
+          leafletMap.flyTo(filtered[0].coords, 16, { duration: 1 });
+        }
+        highlightPathwayForCommunity(filtered[0].name);
+      }
+    }
+
+    function setFilter(type, chipElement) {
+      currentFilter = type;
+      document.querySelectorAll('.chip').forEach(el => el.classList.remove('active'));
+      chipElement.classList.add('active');
+
+      if (currentEngine === 'leaflet' && leafletMap) {
+        leafletMarkers.forEach(m => {
+          if (type === 'all') {
+            leafletMap.addLayer(m);
+          } else if (type === 'primary') {
+            if (m.entityType === 'school' && m.entityData.type === 'primary') leafletMap.addLayer(m);
+            else leafletMap.removeLayer(m);
+          } else if (type === 'middle') {
+            if (m.entityType === 'school' && m.entityData.type === 'middle') leafletMap.addLayer(m);
+            else leafletMap.removeLayer(m);
+          } else if (type === 'high') {
+            if (m.entityType === 'school' && m.entityData.type === 'high') leafletMap.addLayer(m);
+            else leafletMap.removeLayer(m);
+          } else if (type === 'community') {
+            if (m.entityType === 'community') leafletMap.addLayer(m);
+            else leafletMap.removeLayer(m);
+          } else if (type === 'tier1') {
+            if (m.entityData.tier && m.entityData.tier.includes('第一梯队')) leafletMap.addLayer(m);
+            else leafletMap.removeLayer(m);
+          }
+        });
+      } else {
+        drawCanvas();
+      }
+
+      showToast(`已筛选：${chipElement.innerText}`);
+    }
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function resetView() {
+      if (currentEngine === 'leaflet' && leafletMap) {
+        leafletMap.flyTo(CENTER_POINT.coords, 14, { duration: 1.2 });
+      } else {
+        canvasPanX = 0;
+        canvasPanY = 0;
+        canvasZoomLevel = 1.0;
+        drawCanvas();
+      }
+      showToast("已重置至锐满分教育（金御花园）全景中心");
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.classList.add('show');
+      setTimeout(() => { t.classList.remove('show'); }, 2400);
+    }
+
+    window.addEventListener('DOMContentLoaded', initApplication);
+  </script>
+</body>
+</html>
