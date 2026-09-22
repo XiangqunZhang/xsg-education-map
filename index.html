@@ -722,6 +722,11 @@
       <!-- Offline High-Precision Vector Canvas Layer (Offline/Dual Fallback) -->
       <canvas id="offline-canvas"></canvas>
 
+      <!-- Floating Exit Catchment Focus Button -->
+      <div id="floating-exit-focus" onclick="exitFocusMode()" style="display:none; position:absolute; top:18px; left:50%; transform:translateX(-50%); z-index:999; background:rgba(239,68,68,0.92); color:#fff; font-size:12px; font-weight:700; padding:8px 18px; border-radius:24px; box-shadow:0 4px 16px rgba(239,68,68,0.5); cursor:pointer; align-items:center; gap:6px; border:1.5px solid #fff; transition:all 0.2s;">
+        <span>✖ 退出片区聚焦（恢复默认全景）</span>
+      </div>
+
       <!-- Canvas zoom/nav controls -->
       <div class="canvas-nav-box" id="canvas-controls" style="display:none;">
         <div class="canvas-nav-btn" onclick="canvasZoom(1.2)">+</div>
@@ -969,9 +974,9 @@
     // -------------------------------------------------------------
     const CENTER_POINT = {
       name: "锐满分教育（金御花园校区）",
-      coords: [38.9835, 117.3715],
+      coords: [38.9895, 117.3820],
       desc: "津南咸水沽核心教学基地 | 5KM半径教育资源辐射原点",
-      address: "天津市津南区咸水沽镇津南大道金御花园商业区（紧邻地铁8号线咸水沽西站）"
+      address: "天津市津南区咸水沽镇金御花园（月牙河公园北侧·紧邻咸水沽六小与一中）"
     };
 
     const SCHOOLS = [
@@ -980,20 +985,20 @@
         id: "high_1",
         type: "high",
         name: "咸水沽第一中学（咸一中）",
-        coords: [38.9950, 117.3715],
+        coords: [38.9955, 117.3750],
         tier: "第一梯队（市重点/国家级示范）",
-        distance: "1.3 km",
+        distance: "0.9 km",
         admissionScore: "717.3分 (2025年) / 722分 (2023年)",
         passRate: "高考本科率接近100%，特控一本率超82%",
-        desc: "津南区高中唯一天花板，全区尖子生终极殿堂，每年全区仅招收约800人（全区排位前7-8%）。紧邻月牙河西路与同声路。"
+        desc: "津南区高中唯一天花板，全区尖子生终极殿堂，每年全区仅招收约800人（全区排位前7-8%）。坐落于同声路与月牙河西路交口，毗邻金浩园与金御花园。"
       },
       {
         id: "high_2",
         type: "high",
         name: "咸水沽第二中学（高中部）",
-        coords: [38.9935, 117.3980],
+        coords: [38.9935, 117.4080],
         tier: "第二梯队（区级重点完中）",
-        distance: "2.5 km",
+        distance: "2.3 km",
         admissionScore: "约 670 分 (2025年)",
         passRate: "高考本科率超85%，津南区第二梯队领跑者",
         desc: "咸水沽传统骨干高中，第二梯队首选保底强校，生源整齐，校风严谨。"
@@ -1004,9 +1009,9 @@
         id: "mid_2",
         type: "middle",
         name: "咸水沽第二中学（初中部）",
-        coords: [38.9935, 117.3980],
+        coords: [38.9935, 117.4080],
         tier: "第一梯队（全区公办初中龙头）",
-        distance: "2.5 km",
+        distance: "2.3 km",
         passRate: "中考普高率约 68.5% | 咸一中录取率约 18.5%",
         desc: "咸水沽中考成绩最强初中！每年考取咸一中人数常年位列全区前列，第二学区家长摇号最核心争夺目标。"
       },
@@ -1014,9 +1019,9 @@
         id: "mid_4",
         type: "middle",
         name: "咸水沽第四中学",
-        coords: [38.9900, 117.3885],
+        coords: [38.9910, 117.3940],
         tier: "第一/二梯队（骨干优质初中）",
-        distance: "1.7 km",
+        distance: "1.1 km",
         passRate: "中考普高率约 62.0% | 咸一中录取率约 13.0%",
         desc: "咸水沽镇核心公办初中，毗邻月坛商厦与津南图书馆，重点班学风极佳，考入咸一中与咸二中高中部人数众多。"
       },
@@ -1024,9 +1029,9 @@
         id: "mid_5",
         type: "middle",
         name: "咸水沽第五中学",
-        coords: [38.9695, 117.3840],
+        coords: [38.9710, 117.3880],
         tier: "第二梯队（距金御最近新锐初中）",
-        distance: "1.8 km",
+        distance: "2.1 km",
         passRate: "中考普高率约 55.0% | 咸一中录取率约 9.2%",
         desc: "现代化新校区，坐落于二八公路南侧海河中游，毗邻天津师范大学生态分院，生源规模与硬件水平逐年攀升。"
       },
@@ -1034,9 +1039,9 @@
         id: "mid_3",
         type: "middle",
         name: "咸水沽第三中学",
-        coords: [38.9880, 117.3955],
+        coords: [38.9890, 117.3990],
         tier: "第二梯队（稳健型公办）",
-        distance: "2.2 km",
+        distance: "1.5 km",
         passRate: "中考普高率约 53.5% | 咸一中录取率约 8.5%",
         desc: "覆盖咸水沽老城区生源，紧靠惠丰花园，普通工薪家庭为主，两极分化明显，头部重点班成绩优良。"
       },
@@ -1046,7 +1051,7 @@
         name: "海河教育园区南开学校（初中部）",
         coords: [38.9930, 117.3380],
         tier: "特级（享市内六区中考特权）",
-        distance: "3.2 km",
+        distance: "3.8 km",
         passRate: "中考普高率约 82.0% | 市六区重点高中超 45%",
         desc: "九年一贯直升，海教园户籍+学籍可报考面向市内六区高中，全区升学天花板。"
       },
@@ -1056,7 +1061,7 @@
         name: "双桥河中学",
         coords: [38.9710, 117.4410],
         tier: "第三梯队（镇域普通完中）",
-        distance: "6.2 km",
+        distance: "5.5 km",
         passRate: "中考普高率约 48.0%",
         desc: "辐射双桥河镇域村居及还迁社区，满足就近入学需求。"
       },
@@ -1066,33 +1071,33 @@
         id: "pri_6",
         type: "primary",
         name: "咸水沽第六小学",
-        coords: [38.9850, 117.3650],
-        tier: "第二梯队（金御花园直属对口）",
-        distance: "0.6 km",
-        desc: "位于同声路与雅润路口东南约150米，紧邻金才园、金御花园、金浩园，书香校园示范校，为校区第一对口公办名小！",
+        coords: [38.9890, 117.3680],
+        tier: "第二梯队（金御花园直属对口名小）",
+        distance: "1.2 km",
+        desc: "位于同声路与雅润路交口东南侧，高德地图原厂蓝标精准定格！是金御花园、金浩园、金才园直属对口公办小学。",
         pairMiddles: ["mid_5", "mid_2", "mid_4", "mid_3"],
-        onCatchment: "金御花园、金才园、金浩园、世纪佳园、水岸华庭、城市亮点、艺树澜庭、吾悦华府、诚信里等",
-        catchmentRadius: 1100
+        onCatchment: "金御花园、金浩园、金才园、水岸华庭、城市亮点、世纪佳园、吾悦华府、诚信里、艺树澜庭等",
+        catchmentRadius: 1800
       },
       {
         id: "pri_exp_main",
         type: "primary",
         name: "津南区实验小学（本部）",
-        coords: [38.9880, 117.3915],
+        coords: [38.9890, 117.3960],
         tier: "第一梯队（全区公办第一品牌）",
-        distance: "1.8 km",
+        distance: "1.2 km",
         desc: "天津市首批3A学校，津南区第一名小，位于二八公路与新祥园东侧，师资雄厚，生源极其拔尖。",
         pairMiddles: ["mid_2", "mid_4", "mid_3", "mid_5"],
         onCatchment: "丰收路原住民核心区、聚福园、新祥园等",
-        catchmentRadius: 900
+        catchmentRadius: 1000
       },
       {
         id: "pri_exp_hx",
         type: "primary",
         name: "津南区实验小学（合祥园校区/富力又一城）",
-        coords: [38.9785, 117.4125],
+        coords: [38.9800, 117.4180],
         tier: "第一梯队（富力高端优质校区）",
-        distance: "3.6 km",
+        distance: "3.3 km",
         desc: "实验小学集团化分校，全面导入本部优质教研体系，坐拥富力又一城数万高净值家庭，学习氛围极其内卷。",
         pairMiddles: ["mid_2", "mid_4", "mid_5", "mid_3"],
         onCatchment: "富力又一城（合祥园、合力园、合安园、合茂园、合居园、合盈园等全域）",
@@ -1102,21 +1107,21 @@
         id: "pri_4",
         type: "primary",
         name: "咸水沽第四小学",
-        coords: [38.9940, 117.3910],
+        coords: [38.9950, 117.3940],
         tier: "第一梯队（老牌书香名校）",
-        distance: "2.1 km",
+        distance: "1.2 km",
         desc: "全国楹联教育示范基地，咸水沽老城区名校，位于月坛商厦北侧，常规管理极其严格，语文学科实力全区享誉。",
         pairMiddles: ["mid_2", "mid_4", "mid_3", "mid_5"],
         onCatchment: "光华东里/西里、光明北里/南里、凤明里、月坛商圈成熟住宅区",
-        catchmentRadius: 850
+        catchmentRadius: 900
       },
       {
         id: "pri_5",
         type: "primary",
         name: "咸水沽第五小学",
-        coords: [38.9855, 117.4125],
+        coords: [38.9860, 117.4160],
         tier: "第二梯队（科技创客新锐校）",
-        distance: "3.5 km",
+        distance: "3.0 km",
         desc: "天津市青少年科技教育示范校，STEM创客社团与无人机全市领跑，覆盖滨河雅园、博雅花园与金石里、金芳园。",
         pairMiddles: ["mid_2", "mid_5", "mid_4", "mid_3"],
         onCatchment: "滨河雅园、博雅花园、金石里、金芳园、金朗园等",
@@ -1126,21 +1131,21 @@
         id: "pri_3",
         type: "primary",
         name: "咸水沽第三小学",
-        coords: [38.9875, 117.3970],
+        coords: [38.9880, 117.3990],
         tier: "第二梯队（稳健骨干校）",
-        distance: "2.3 km",
+        distance: "1.5 km",
         desc: "历史悠久，学风扎实，注重课本基础过关与阳光体育，覆盖密集居住片区。",
         pairMiddles: ["mid_3", "mid_2", "mid_4", "mid_5"],
         onCatchment: "北斗公寓、惠丰花园、沽上江南、米兰阳光等",
-        catchmentRadius: 800
+        catchmentRadius: 850
       },
       {
         id: "pri_7",
         type: "primary",
         name: "咸水沽第七小学",
-        coords: [38.9835, 117.4060],
+        coords: [38.9840, 117.4110],
         tier: "第三梯队（综合保障校）",
-        distance: "3.0 km",
+        distance: "2.6 km",
         desc: "金茂路标准化校区，校园足球特色，紧靠龙湖紫宸，承担新城与还迁片区学位保障。",
         pairMiddles: ["mid_5", "mid_3", "mid_2", "mid_4"],
         onCatchment: "金茂路周边居住区、合营村还迁区、随迁统筹",
@@ -1152,7 +1157,7 @@
         name: "海河教育园区南开学校（小学部）",
         coords: [38.9930, 117.3380],
         tier: "第一梯队（九年一贯旗舰）",
-        distance: "3.2 km",
+        distance: "3.8 km",
         desc: "南开天大直属支持，全区生源素质天花板，小学初中九年一贯贯通培养。",
         pairMiddles: ["mid_nk"],
         onCatchment: "海教园海棠街商品房（文尚、明尚、仁恒海和院等）",
@@ -1164,7 +1169,7 @@
         name: "双桥河第一小学",
         coords: [38.9720, 117.4380],
         tier: "第三梯队（乡镇完小）",
-        distance: "5.8 km",
+        distance: "5.3 km",
         desc: "双桥河镇中心完小，对口直升双桥河中学。",
         pairMiddles: ["mid_sqh"],
         onCatchment: "双桥河聚和园、周边村居",
@@ -1173,33 +1178,33 @@
     ];
 
     const COMMUNITIES = [
-      { name: "金御花园（校区驻地）", coords: [38.9835, 117.3715], dist: "0.0 km", zone: "0-1KM核心圈", households: "约1800户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "锐满分教育校区驻地小区，步行1分钟即达，近咸水沽西站，六小核心划片生源。" },
-      { name: "金才园", coords: [38.9855, 117.3675], dist: "0.3 km", zone: "0-1KM核心圈", households: "约1200户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "位于津南大道与雅润路口东北角，紧邻地铁咸水沽西站A口，六小对口第一生源地。" },
-      { name: "金浩园", coords: [38.9825, 117.3695], dist: "0.2 km", zone: "0-1KM核心圈", households: "约1400户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "与金御花园相连的成熟社区，步行3分钟到校区，生源极其密集。" },
-      { name: "诚信里", coords: [38.9810, 117.3645], dist: "0.6 km", zone: "0-1KM核心圈", households: "约800户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "紧邻咸水沽西站西侧，工薪改善型生源，六小直属对口。" },
-      { name: "城市亮点", coords: [38.9840, 117.3780], dist: "0.6 km", zone: "0-1KM核心圈", households: "约1100户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "津南大道北侧品质住宅区，近普明里红霞里，家长注重课后提升与托管。" },
-      { name: "水岸华庭", coords: [38.9830, 117.3815], dist: "0.9 km", zone: "0-1KM核心圈", households: "约1300户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "靠近二八公路与河道景观，入住率高，小学生源活跃，六小对口。" },
-      { name: "吾悦华府", coords: [38.9775, 117.3720], dist: "0.7 km", zone: "0-1KM核心圈", households: "约1500户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "新城吾悦广场商圈高品质次新盘，年轻中产白领聚集，高客单意向强。" },
-      { name: "艺树澜庭", coords: [38.9735, 117.3715], dist: "1.1 km", zone: "1-3KM黄金圈", households: "约900户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "聚祥道南侧低密洋房小区，家长对素质教育与学科拔高均有高诉求。" },
-      { name: "世纪佳园", coords: [38.9755, 117.3785], dist: "1.0 km", zone: "1-3KM黄金圈", households: "约2200户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "咸水沽南部规模大社区，生源池庞大，六小核心对口。" },
-      { name: "富力又一城·合祥园", coords: [38.9785, 117.4125], dist: "3.6 km", zone: "3-5KM辐射圈", households: "约2500户", primarySchoolId: "pri_exp_hx", primarySchoolName: "津南区实验小学（合祥园校区）", middleDesc: "第二学区派位（必选咸二中、咸四中首志愿）", targetHigh: "咸水沽一中（全区最高达线目标）", desc: "津南最具消费力居住板块，实验小学对口，家长全员鸡娃冲咸一中！" },
-      { name: "富力又一城·合力园", coords: [38.9770, 117.4110], dist: "3.5 km", zone: "3-5KM辐射圈", households: "约2000户", primarySchoolId: "pri_exp_hx", primarySchoolName: "津南区实验小学（合祥园校区）", middleDesc: "第二学区派位（争夺咸二中重点班）", targetHigh: "咸一中 / 咸二中", desc: "富力核心组团，生源素质优异，奥数与小升初分班拔尖需求旺盛。" },
-      { name: "富力又一城·合安园", coords: [38.9765, 117.4085], dist: "3.3 km", zone: "3-5KM辐射圈", households: "约1800户", primarySchoolId: "pri_exp_hx", primarySchoolName: "津南区实验小学（合祥园校区）", middleDesc: "第二学区派位（咸二中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "紧靠富力商街，家长群互动频繁，口碑转介绍极高区域。" },
-      { name: "富力又一城·合茂园", coords: [38.9800, 117.4150], dist: "3.8 km", zone: "3-5KM辐射圈", households: "约2200户", primarySchoolId: "pri_exp_hx", primarySchoolName: "津南区实验小学（合祥园校区）", middleDesc: "第二学区派位（咸二中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "富力东部主力组团，高年级小初衔接刚需极其迫切。" },
-      { name: "滨河雅园", coords: [38.9815, 117.4030], dist: "2.7 km", zone: "1-3KM黄金圈", households: "约1600户", primarySchoolId: "pri_5", primarySchoolName: "咸水沽第五小学", middleDesc: "第二学区派位（咸二中/咸五中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "津南大道沿线大型社区，对口五小，注重孩子全面素养与提分。" },
-      { name: "博雅花园", coords: [38.9825, 117.4050], dist: "2.9 km", zone: "1-3KM黄金圈", households: "约1800户", primarySchoolId: "pri_5", primarySchoolName: "咸水沽第五小学", middleDesc: "第二学区派位（咸二中/咸五中）", targetHigh: "咸一中 / 咸二中", desc: "咸水沽五小主力划片小区，中产家庭聚集，课外辅导习惯好。" },
-      { name: "金芳园", coords: [38.9860, 117.4140], dist: "3.7 km", zone: "3-5KM辐射圈", households: "约1900户", primarySchoolId: "pri_5", primarySchoolName: "咸水沽第五小学", middleDesc: "第二学区派位（咸五中/咸二中）", targetHigh: "咸一中 / 咸二中", desc: "五小正对口小区，学生放学步行可达五小，晚托辅导需求密集。" },
-      { name: "金石里 / 金石南里", coords: [38.9850, 117.4080], dist: "3.2 km", zone: "3-5KM辐射圈", households: "约1500户", primarySchoolId: "pri_5", primarySchoolName: "咸水沽第五小学", middleDesc: "第二学区派位（咸二中/咸五中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "成熟工薪改善社区，生源基础两极分化，提优补差刚需突出。" },
-      { name: "惠丰花园", coords: [38.9905, 117.3945], dist: "2.1 km", zone: "1-3KM黄金圈", households: "约1700户", primarySchoolId: "pri_3", primarySchoolName: "咸水沽第三小学", middleDesc: "第二学区派位（咸二中/咸三中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "咸水沽三小对口核心小区，家长偏爱务实提分，重视单科补强。" },
-      { name: "沽上江南", coords: [38.9890, 117.3920], dist: "1.9 km", zone: "1-3KM黄金圈", households: "约1200户", primarySchoolId: "pri_3", primarySchoolName: "咸水沽第三小学", middleDesc: "第二学区派位（咸二中/咸四中/咸三中）", targetHigh: "咸一中 / 咸二中", desc: "地理位置优越，靠近津南主干道，中小学生源占比高。" },
-      { name: "北斗公寓 / 惠裕里", coords: [38.9930, 117.3910], dist: "2.0 km", zone: "1-3KM黄金圈", households: "约1400户", primarySchoolId: "pri_3", primarySchoolName: "咸水沽第三小学", middleDesc: "第二学区派位（咸三中/咸二中）", targetHigh: "咸一中 / 咸二中", desc: "咸三小与老城区居住区，学生两极分化明显，需要习惯纠偏。" },
-      { name: "光华东里 / 光华西里", coords: [38.9880, 117.3965], dist: "2.2 km", zone: "1-3KM黄金圈", households: "约1600户", primarySchoolId: "pri_4", primarySchoolName: "咸水沽第四小学", middleDesc: "第二学区派位（咸二中/咸四中主力）", targetHigh: "咸一中 / 咸二中", desc: "月坛商圈老牌名片，对口咸四小，语文底蕴好，家长信任传统品牌。" },
-      { name: "光明北里 / 光明南里", coords: [38.9890, 117.3985], dist: "2.4 km", zone: "1-3KM黄金圈", households: "约1800户", primarySchoolId: "pri_4", primarySchoolName: "咸水沽第四小学", middleDesc: "第二学区派位（咸四中/咸二中）", targetHigh: "咸一中 / 咸二中", desc: "咸四小对口密集社区，数学与英语外教课外加码比例高。" },
-      { name: "聚福园 / 丰收里", coords: [38.9925, 117.3880], dist: "1.7 km", zone: "1-3KM黄金圈", households: "约1500户", primarySchoolId: "pri_exp_main", primarySchoolName: "津南区实验小学（本部）", middleDesc: "第二学区派位（咸二中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "津南实小本部划片，原住民与体制内家庭多，升学意愿极强。" },
-      { name: "仁恒海和院（海教园）", coords: [38.9890, 117.3390], dist: "3.2 km", zone: "3-5KM辐射圈", households: "约1600户", primarySchoolId: "pri_nk", primarySchoolName: "海河教育园区南开学校", middleDesc: "九年一贯制直升南开学校初中部", targetHigh: "市内六区“市五所”（南开/一中/耀华等）", desc: "海教园高端改善盘，高校教授及企业高管家庭，直通六区中考！" },
-      { name: "文尚花园 / 明尚花园（海教园）", coords: [38.9920, 117.3450], dist: "3.0 km", zone: "3-5KM辐射圈", households: "约2400户", primarySchoolId: "pri_nk", primarySchoolName: "海河教育园区南开学校", middleDesc: "直升南开学校初中部（享六区中考）", targetHigh: "市内六区重点高中 / 咸一中", desc: "南开大学天大旁，高知家庭集中，课外高难竞赛辅导需求大。" },
-      { name: "景慧佳苑 / 雅润园（海教园）", coords: [38.9840, 117.3470], dist: "2.1 km", zone: "1-3KM黄金圈", households: "约2000户", primarySchoolId: "pri_nk", primarySchoolName: "海河教育园区南开学校", middleDesc: "直升南开学校初中部", targetHigh: "市内六区重点高中", desc: "雅润路校区周边，年轻科研落户家庭聚集。" },
-      { name: "双桥河聚和园", coords: [38.9710, 117.4350], dist: "5.7 km", zone: "3-5KM辐射圈", households: "约1800户", primarySchoolId: "pri_sqh", primarySchoolName: "双桥河第一小学", middleDesc: "对口直升双桥河中学", targetHigh: "咸水沽二中 / 葛沽一中", desc: "双桥河镇大型居住区，基础较薄弱，需保普高托底辅导。" }
+      { name: "金御花园（校区驻地）", coords: [38.9895, 117.3820], dist: "0.0 km", zone: "0-1KM核心圈", households: "约1800户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "锐满分教育校区驻地小区，坐落于月牙河公园正北侧，紧邻咸水沽六小与一中，核心划片生源聚居地！" },
+      { name: "金浩园", coords: [38.9950, 117.3685], dist: "1.3 km", zone: "1-3KM黄金圈", households: "约1400户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "高德地图顶部原厂地块！同声路北侧，西邻津南中医医院，东邻咸一中，六小直属生源。" },
+      { name: "金才园", coords: [38.9790, 117.3685], dist: "1.6 km", zone: "1-3KM黄金圈", households: "约1200户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "高德地图底部原厂地块！紧靠希尔顿欢朋酒店与咸水沽西地铁站，六小核心划片生源。" },
+      { name: "城市亮点", coords: [38.9870, 117.3840], dist: "0.3 km", zone: "0-1KM核心圈", households: "约1100户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "月牙河公园西侧成熟社区，步行3分钟到校区，六小对口生源。" },
+      { name: "水岸华庭", coords: [38.9880, 117.3885], dist: "0.6 km", zone: "0-1KM核心圈", households: "约1300户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "月牙河景观带东侧，高入住率品质小区，生源密集，步行至锐满分仅需5分钟。" },
+      { name: "世纪佳园", coords: [38.9810, 117.3850], dist: "1.0 km", zone: "0-1KM核心圈", households: "约2200户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "咸水沽南部规模大社区，月牙河公园以南，生源池巨大，六小对口。" },
+      { name: "吾悦华府", coords: [38.9765, 117.3720], dist: "1.7 km", zone: "1-3KM黄金圈", households: "约1500户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "新城吾悦广场商圈高品质次新盘，年轻中产白领聚集，高客单意向强。" },
+      { name: "诚信里", coords: [38.9790, 117.3635], dist: "1.9 km", zone: "1-3KM黄金圈", households: "约800户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "咸水沽西站西侧，工薪改善型生源，六小直属对口。" },
+      { name: "艺树澜庭", coords: [38.9750, 117.3730], dist: "1.8 km", zone: "1-3KM黄金圈", households: "约900户", primarySchoolId: "pri_6", primarySchoolName: "咸水沽第六小学", middleDesc: "第二学区派位（咸五中/二中/四中/三中）", targetHigh: "咸一中 / 咸二中", desc: "聚祥道南侧低密洋房小区，家长对素质教育与学科拔高均有高诉求。" },
+      { name: "富力又一城·合祥园", coords: [38.9800, 117.4180], dist: "3.3 km", zone: "3-5KM辐射圈", households: "约2500户", primarySchoolId: "pri_exp_hx", primarySchoolName: "津南区实验小学（合祥园校区）", middleDesc: "第二学区派位（必选咸二中、咸四中首志愿）", targetHigh: "咸水沽一中（全区最高达线目标）", desc: "津南最具消费力居住板块，实验小学对口，家长全员鸡娃冲咸一中！" },
+      { name: "富力又一城·合力园", coords: [38.9785, 117.4165], dist: "3.2 km", zone: "3-5KM辐射圈", households: "约2000户", primarySchoolId: "pri_exp_hx", primarySchoolName: "津南区实验小学（合祥园校区）", middleDesc: "第二学区派位（争夺咸二中重点班）", targetHigh: "咸一中 / 咸二中", desc: "富力核心组团，生源素质优异，奥数与小升初分班拔尖需求旺盛。" },
+      { name: "富力又一城·合安园", coords: [38.9775, 117.4140], dist: "3.0 km", zone: "3-5KM辐射圈", households: "约1800户", primarySchoolId: "pri_exp_hx", primarySchoolName: "津南区实验小学（合祥园校区）", middleDesc: "第二学区派位（咸二中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "紧靠富力商街，家长群互动频繁，口碑转介绍极高区域。" },
+      { name: "富力又一城·合茂园", coords: [38.9815, 117.4210], dist: "3.6 km", zone: "3-5KM辐射圈", households: "约2200户", primarySchoolId: "pri_exp_hx", primarySchoolName: "津南区实验小学（合祥园校区）", middleDesc: "第二学区派位（咸二中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "富力东部主力组团，高年级小初衔接刚需极其迫切。" },
+      { name: "滨河雅园", coords: [38.9830, 117.4080], dist: "2.4 km", zone: "1-3KM黄金圈", households: "约1600户", primarySchoolId: "pri_5", primarySchoolName: "咸水沽第五小学", middleDesc: "第二学区派位（咸二中/咸五中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "津南大道沿线大型社区，对口五小，注重孩子全面素养与提分。" },
+      { name: "博雅花园", coords: [38.9840, 117.4100], dist: "2.5 km", zone: "1-3KM黄金圈", households: "约1800户", primarySchoolId: "pri_5", primarySchoolName: "咸水沽第五小学", middleDesc: "第二学区派位（咸二中/咸五中）", targetHigh: "咸一中 / 咸二中", desc: "咸水沽五小主力划片小区，中产家庭聚集，课外辅导习惯好。" },
+      { name: "金芳园", coords: [38.9870, 117.4180], dist: "3.1 km", zone: "3-5KM辐射圈", households: "约1900户", primarySchoolId: "pri_5", primarySchoolName: "咸水沽第五小学", middleDesc: "第二学区派位（咸五中/咸二中）", targetHigh: "咸一中 / 咸二中", desc: "五小正对口小区，学生放学步行可达五小，晚托辅导需求密集。" },
+      { name: "金石里 / 金石南里", coords: [38.9860, 117.4120], dist: "2.6 km", zone: "1-3KM黄金圈", households: "约1500户", primarySchoolId: "pri_5", primarySchoolName: "咸水沽第五小学", middleDesc: "第二学区派位（咸二中/咸五中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "成熟工薪改善社区，生源基础两极分化，提优补差刚需突出。" },
+      { name: "惠丰花园", coords: [38.9905, 117.3975], dist: "1.4 km", zone: "1-3KM黄金圈", households: "约1700户", primarySchoolId: "pri_3", primarySchoolName: "咸水沽第三小学", middleDesc: "第二学区派位（咸二中/咸三中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "咸水沽三小对口核心小区，家长偏爱务实提分，重视单科补强。" },
+      { name: "沽上江南", coords: [38.9895, 117.3950], dist: "1.1 km", zone: "1-3KM黄金圈", households: "约1200户", primarySchoolId: "pri_3", primarySchoolName: "咸水沽第三小学", middleDesc: "第二学区派位（咸二中/咸四中/咸三中）", targetHigh: "咸一中 / 咸二中", desc: "地理位置优越，靠近津南主干道，中小学生源占比高。" },
+      { name: "北斗公寓 / 惠裕里", coords: [38.9930, 117.3940], dist: "1.1 km", zone: "1-3KM黄金圈", households: "约1400户", primarySchoolId: "pri_3", primarySchoolName: "咸水沽第三小学", middleDesc: "第二学区派位（咸三中/咸二中）", targetHigh: "咸一中 / 咸二中", desc: "咸三小与老城区居住区，学生两极分化明显，需要习惯纠偏。" },
+      { name: "光华东里 / 光华西里", coords: [38.9880, 117.3995], dist: "1.5 km", zone: "1-3KM黄金圈", households: "约1600户", primarySchoolId: "pri_4", primarySchoolName: "咸水沽第四小学", middleDesc: "第二学区派位（咸二中/咸四中主力）", targetHigh: "咸一中 / 咸二中", desc: "月坛商圈老牌名片，对口咸四小，语文底蕴好，家长信任传统品牌。" },
+      { name: "光明北里 / 光明南里", coords: [38.9890, 117.4015], dist: "1.7 km", zone: "1-3KM黄金圈", households: "约1800户", primarySchoolId: "pri_4", primarySchoolName: "咸水沽第四小学", middleDesc: "第二学区派位（咸四中/咸二中）", targetHigh: "咸一中 / 咸二中", desc: "咸四小对口密集社区，数学与英语外教课外加码比例高。" },
+      { name: "聚福园 / 丰收里", coords: [38.9925, 117.3910], dist: "0.9 km", zone: "0-1KM核心圈", households: "约1500户", primarySchoolId: "pri_exp_main", primarySchoolName: "津南区实验小学（本部）", middleDesc: "第二学区派位（咸二中/咸四中）", targetHigh: "咸一中 / 咸二中", desc: "津南实小本部划片，原住民与体制内家庭多，升学意愿极强。" },
+      { name: "仁恒海和院（海教园）", coords: [38.9890, 117.3390], dist: "3.7 km", zone: "3-5KM辐射圈", households: "约1600户", primarySchoolId: "pri_nk", primarySchoolName: "海河教育园区南开学校", middleDesc: "九年一贯制直升南开学校初中部", targetHigh: "市内六区“市五所”（南开/一中/耀华等）", desc: "海教园高端改善盘，高校教授及企业高管家庭，直通六区中考！" },
+      { name: "文尚花园 / 明尚花园（海教园）", coords: [38.9920, 117.3450], dist: "3.2 km", zone: "3-5KM辐射圈", households: "约2400户", primarySchoolId: "pri_nk", primarySchoolName: "海河教育园区南开学校", middleDesc: "直升南开学校初中部（享六区中考）", targetHigh: "市内六区重点高中 / 咸一中", desc: "南开大学天大旁，高知家庭集中，课外高难竞赛辅导需求大。" },
+      { name: "景慧佳苑 / 雅润园（海教园）", coords: [38.9840, 117.3470], dist: "3.1 km", zone: "3-5KM辐射圈", households: "约2000户", primarySchoolId: "pri_nk", primarySchoolName: "海河教育园区南开学校", middleDesc: "直升南开学校初中部", targetHigh: "市内六区重点高中", desc: "雅润路校区周边，年轻科研落户家庭聚集。" },
+      { name: "双桥河聚和园", coords: [38.9710, 117.4350], dist: "5.1 km", zone: "3-5KM辐射圈", households: "约1800户", primarySchoolId: "pri_sqh", primarySchoolName: "双桥河第一小学", middleDesc: "对口直升双桥河中学", targetHigh: "咸水沽二中 / 葛沽一中", desc: "双桥河镇大型居住区，基础较薄弱，需保普高托底辅导。" }
     ];
 
     // -------------------------------------------------------------
@@ -1303,6 +1308,13 @@
 
         // Check if user stored custom AMap Key
         loadStoredAmapConfig();
+
+        // Click map blank background to exit focus mode
+        leafletMap.on('click', (e) => {
+          if (currentActiveSchoolCatchment || highlightedPath || catchmentCoverageLayers.length > 0) {
+            exitFocusMode();
+          }
+        });
 
       } catch (e) {
         console.error("Leaflet init failed, fallback to Canvas:", e);
@@ -1989,12 +2001,21 @@
     // -------------------------------------------------------------
     // CATCHMENT ZONE VISUALIZER (一键透视小学/初中片区覆盖辐射圈)
     // -------------------------------------------------------------
+    let currentActiveSchoolCatchment = null;
+
     function highlightCatchmentForSchool(schoolId) {
+      // If clicking the same school again -> TOGGLE OFF!
+      if (currentActiveSchoolCatchment === schoolId) {
+        exitFocusMode();
+        return false;
+      }
+
       // Clear previous catchment layers
       clearCatchmentLayers();
+      clearLeafletLines();
 
       const school = SCHOOLS.find(s => s.id === schoolId);
-      if (!school) return;
+      if (!school) return false;
 
       let coveredCommunities = [];
       let strokeColor = '#38bdf8';
@@ -2006,42 +2027,42 @@
         strokeColor = '#00f2fe';
         fillColor = '#00c6ff';
       } else if (school.type === 'middle') {
-        // Secondary District feeder primary schools
         strokeColor = '#a855f7';
         fillColor = '#7c3aed';
-        // For Xianshuigu middle schools, they cover the primary schools in District 2
         coveredCommunities = COMMUNITIES.filter(c => {
           const pri = SCHOOLS.find(s => s.id === c.primarySchoolId);
           return pri && pri.pairMiddles && pri.pairMiddles.includes(school.id);
         });
       } else if (school.type === 'high') {
-        // High schools cover the entire district
         strokeColor = '#f59e0b';
         fillColor = '#d97706';
         coveredCommunities = COMMUNITIES;
       }
 
-      if (coveredCommunities.length === 0) return;
+      if (coveredCommunities.length === 0) return false;
 
-      // 1. Calculate bounding circle / hull covering school and its communities
-      const allPoints = [school.coords, ...coveredCommunities.map(c => c.coords)];
-      
-      // Calculate center and max radius
+      currentActiveSchoolCatchment = schoolId;
+
+      // Show floating exit button
+      const exitBtn = document.getElementById('floating-exit-focus');
+      if (exitBtn) exitBtn.style.display = 'flex';
+
+      // 1. Calculate bounding circle covering school and its communities
       let maxDist = 0;
       coveredCommunities.forEach(c => {
         const d = leafletMap.distance(school.coords, c.coords);
         if (d > maxDist) maxDist = d;
       });
-      const zoneRadius = Math.max(maxDist + 250, school.catchmentRadius || 800);
+      const zoneRadius = Math.max(maxDist + 150, school.catchmentRadius || 900);
 
       // Draw Catchment Zone Circle (粗边框辐射圈)
       const catchmentCircle = L.circle(school.coords, {
         radius: zoneRadius,
         color: strokeColor,
-        weight: 3.5,
-        dashArray: '6, 6',
+        weight: 3.8,
+        dashArray: '8, 8',
         fillColor: fillColor,
-        fillOpacity: 0.18,
+        fillOpacity: 0.20,
         className: 'catchment-zone-pulse'
       }).addTo(leafletMap);
       catchmentCoverageLayers.push(catchmentCircle);
@@ -2050,26 +2071,44 @@
       coveredCommunities.forEach(c => {
         const ray = L.polyline([school.coords, c.coords], {
           color: strokeColor,
-          weight: 3,
-          opacity: 0.85,
-          dashArray: '5, 5'
+          weight: 3.5,
+          opacity: 0.9,
+          dashArray: '6, 6'
         }).addTo(leafletMap);
         catchmentCoverageLayers.push(ray);
       });
 
-      // 3. Highlight popup info
-      showToast(`🎯 已透视「${school.name}」划片覆盖片区！共涵盖 ${coveredCommunities.length} 个对口居民小区`);
+      // 3. Highlight toast
+      showToast(`🎯 已锁定「${school.name}」招生片区辐射圈（共涵盖 ${coveredCommunities.length} 个对口小区）`);
+      return true;
     }
 
     function clearCatchmentLayers() {
       catchmentCoverageLayers.forEach(l => leafletMap.removeLayer(l));
       catchmentCoverageLayers = [];
+      currentActiveSchoolCatchment = null;
+    }
+
+    function exitFocusMode() {
+      clearCatchmentLayers();
+      clearLeafletLines();
+      highlightedPath = null;
+      const exitBtn = document.getElementById('floating-exit-focus');
+      if (exitBtn) exitBtn.style.display = 'none';
+      showToast("已退出片区聚焦，恢复默认全景");
     }
 
     function showSchoolDetail(s) {
-      // Highlight catchment coverage zone
+      // Toggle catchment coverage zone
       if (currentEngine === 'leaflet' && leafletMap) {
-        highlightCatchmentForSchool(s.id);
+        const wasActive = highlightCatchmentForSchool(s.id);
+        if (!wasActive) {
+          // If toggled off
+          document.getElementById('detail-title').innerText = "📍 默认全景视图";
+          document.getElementById('detail-badge').innerText = "未聚焦";
+          document.getElementById('detail-body').innerHTML = "点击任意小区或学校标记，即可随时聚焦该校划片覆盖圈与升学全链路。再次点击即可恢复全景。";
+          return;
+        }
       }
       document.getElementById('detail-title').innerText = `${s.type === 'primary' ? '🏫' : (s.type === 'middle' ? '🎓' : '🏛️')} ${s.name}`;
       document.getElementById('detail-badge').innerText = s.tier.split('（')[0];
@@ -2226,6 +2265,7 @@
     }
 
     function resetView() {
+      exitFocusMode();
       if (currentEngine === 'leaflet' && leafletMap) {
         leafletMap.flyTo(CENTER_POINT.coords, 14, { duration: 1.2 });
       } else {
