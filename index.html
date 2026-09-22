@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -652,6 +652,215 @@
       padding: 2px 7px;
       border-radius: 4px;
     }
+
+    /* =========================================================================
+       MOBILE RESPONSIVE ADAPTATIONS (屏幕宽度 <= 768px)
+       ========================================================================= */
+    .sheet-drag-handle { display: none; }
+    .mobile-sheet-fab { display: none; }
+
+    @media (max-width: 768px) {
+      body {
+        height: 100vh;
+        height: 100dvh;
+      }
+
+      header {
+        padding: 8px 10px;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .brand-title {
+        gap: 6px;
+      }
+      .brand-badge {
+        font-size: 9px;
+        padding: 2px 5px;
+      }
+      .brand-text h1 {
+        font-size: 13.5px;
+        line-height: 1.2;
+      }
+      .brand-text p {
+        display: none;
+      }
+
+      .header-actions {
+        width: 100%;
+        gap: 5px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .header-actions::-webkit-scrollbar { display: none; }
+
+      .btn {
+        padding: 4px 8px;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .btn-basemap {
+        padding: 3px 7px;
+        font-size: 10px;
+      }
+
+      .main-container {
+        height: calc(100vh - 84px);
+        height: calc(100dvh - 84px);
+        flex-direction: column;
+      }
+
+      /* Floating Search Panel */
+      .map-floating-panel {
+        top: 6px;
+        left: 8px;
+        right: 8px;
+        width: calc(100% - 16px);
+        max-width: none;
+      }
+      .glass-box {
+        padding: 6px 10px;
+      }
+      .search-box {
+        padding: 4px 8px;
+      }
+      .search-box input {
+        font-size: 12px;
+      }
+
+      .filter-chips {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 2px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .filter-chips::-webkit-scrollbar { display: none; }
+      .chip {
+        white-space: nowrap;
+        font-size: 10.5px;
+        padding: 2px 7px;
+      }
+
+      /* Floating Exit Catchment Button */
+      #floating-exit-focus {
+        top: 62px;
+        font-size: 11px;
+        padding: 6px 14px;
+        white-space: nowrap;
+      }
+
+      /* Map Legend on Mobile */
+      .map-legend {
+        bottom: 66px;
+        left: 8px;
+        max-width: calc(100% - 16px);
+        font-size: 9.5px;
+        padding: 6px 8px;
+        gap: 3px;
+        background: rgba(13, 20, 38, 0.92);
+      }
+      .map-legend .legend-item {
+        font-size: 9.5px;
+      }
+
+      /* Toast on Mobile */
+      #toast {
+        right: 50%;
+        transform: translateX(50%) translateY(10px);
+        bottom: 74px;
+        width: calc(100% - 32px);
+        text-align: center;
+        font-size: 11px;
+        padding: 8px 12px;
+      }
+      #toast.show {
+        transform: translateX(50%) translateY(0);
+      }
+
+      /* Mobile Drawer Bottom Sheet */
+      .sidebar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        border-radius: 18px 18px 0 0;
+        border-left: none;
+        border-top: 1.5px solid var(--border-glow);
+        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.75);
+        transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: rgba(13, 20, 38, 0.97);
+        backdrop-filter: blur(20px);
+        padding-bottom: env(safe-area-inset-bottom, 10px);
+      }
+
+      .sidebar.sheet-collapsed {
+        height: 52px;
+      }
+      .sidebar.sheet-half {
+        height: 50vh;
+        height: 50dvh;
+      }
+      .sidebar.sheet-full {
+        height: 88vh;
+        height: 88dvh;
+      }
+
+      .sheet-drag-handle {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 0 3px 0;
+        cursor: pointer;
+        user-select: none;
+      }
+      .drag-bar {
+        width: 38px;
+        height: 4px;
+        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.35);
+      }
+
+      .sidebar-tabs {
+        border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+      }
+      .tab-btn {
+        padding: 8px 4px;
+        font-size: 11px;
+      }
+
+      /* Mobile FAB Button */
+      .mobile-sheet-fab {
+        display: flex;
+        position: absolute;
+        bottom: 66px;
+        right: 12px;
+        z-index: 800;
+        background: linear-gradient(135deg, #0284c7, #2563eb);
+        color: #fff;
+        border: 1px solid #38bdf8;
+        border-radius: 24px;
+        padding: 7px 14px;
+        font-size: 11.5px;
+        font-weight: 700;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+        cursor: pointer;
+        align-items: center;
+        gap: 5px;
+        user-select: none;
+        transition: transform 0.15s;
+      }
+      .mobile-sheet-fab:active {
+        transform: scale(0.95);
+      }
+
+      .marker-badge {
+        padding: 3px 7px;
+        font-size: 10px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -734,10 +943,21 @@
           <span>●</span><span id="geocode-status-text">高德 API 原生坐标引擎：已加载</span>
         </div>
       </div>
+
+      <!-- Mobile Floating Drawer Toggle Button -->
+      <div class="mobile-sheet-fab" onclick="cycleMobileSheet()">
+        <span id="mobile-fab-icon">📊</span>
+        <span id="mobile-fab-text">展开数据看板</span>
+      </div>
     </div>
 
-    <!-- Right Sidebar Tabs -->
-    <div class="sidebar">
+    <!-- Right Sidebar Tabs (Mobile Bottom Sheet / Desktop Sidebar) -->
+    <div class="sidebar sheet-collapsed">
+      <!-- Mobile Drag Pull Handle -->
+      <div class="sheet-drag-handle" onclick="cycleMobileSheet()" title="点击或上下滑动展开/收起面板">
+        <span class="drag-bar"></span>
+      </div>
+
       <div class="sidebar-tabs">
         <button class="tab-btn active" onclick="switchTab('tab-macro', this)">📊 5KM大盘看板</button>
         <button class="tab-btn" onclick="switchTab('tab-query', this)">🏘️ 小区对口速查</button>
@@ -1205,6 +1425,12 @@
       // 4. 从数据源启动高德官方 API 动态校验与位置更新
       setTimeout(syncWithGaodeAPI, 1000);
 
+      // 5. 移动端抽屉手势与初始折叠
+      if (window.innerWidth <= 768) {
+        setMobileSheetState('collapsed');
+        initMobileGestures();
+      }
+
       // 默认高亮金御花园校区
       setTimeout(() => {
         highlightPathwayForCommunity("金御花园（校区驻地）");
@@ -1228,6 +1454,9 @@
         amapMap.on('click', () => {
           if (currentActiveSchoolCatchment || highlightedPath || catchmentCoverageOverlays.length > 0) {
             exitFocusMode();
+          }
+          if (window.innerWidth <= 768 && mobileSheetState !== 'collapsed') {
+            setMobileSheetState('collapsed');
           }
         });
 
@@ -1567,6 +1796,10 @@
         再次点击相同学校或地图空白处，即可随时恢复默认全景。
       `;
 
+      if (window.innerWidth <= 768 && mobileSheetState !== 'collapsed') {
+        setMobileSheetState('collapsed');
+      }
+
       showToast("已退出片区聚焦，恢复默认全景");
     }
 
@@ -1577,6 +1810,10 @@
           // 如果是再次点击切换为关闭状态
           return;
         }
+      }
+
+      if (window.innerWidth <= 768) {
+        setMobileSheetState('half');
       }
 
       document.getElementById('detail-title').innerText = `${s.type === 'primary' ? '🏫' : (s.type === 'middle' ? '🎓' : '🏛️')} ${s.name}`;
@@ -1674,6 +1911,9 @@
       `;
       document.getElementById('detail-body').innerHTML = html;
       switchTab('tab-macro', document.querySelectorAll('.tab-btn')[0]);
+      if (window.innerWidth <= 768) {
+        setMobileSheetState('half');
+      }
     }
 
     function highlightPathwayForCommunity(communityName) {
@@ -1864,6 +2104,9 @@
           amapMap.setZoomAndCenter(16, filtered[0].coords);
         }
         highlightPathwayForCommunity(filtered[0].name);
+        if (window.innerWidth <= 768) {
+          setMobileSheetState('half');
+        }
       }
     }
 
@@ -1929,6 +2172,9 @@
             amapMap.setZoomAndCenter(16, c.coords);
           }
           highlightPathwayForCommunity(c.name);
+          if (window.innerWidth <= 768) {
+            setMobileSheetState('half');
+          }
         };
         container.appendChild(card);
       });
@@ -1939,6 +2185,69 @@
       t.innerText = msg;
       t.classList.add('show');
       setTimeout(() => { t.classList.remove('show'); }, 2600);
+    }
+
+    // =========================================================================
+    // MOBILE BOTTOM SHEET & RESPONSIVE INTERACTION
+    // =========================================================================
+    let mobileSheetState = 'collapsed'; // 'collapsed' | 'half' | 'full'
+
+    function cycleMobileSheet() {
+      if (mobileSheetState === 'collapsed') {
+        setMobileSheetState('half');
+      } else if (mobileSheetState === 'half') {
+        setMobileSheetState('full');
+      } else {
+        setMobileSheetState('collapsed');
+      }
+    }
+
+    function setMobileSheetState(state) {
+      if (window.innerWidth > 768) return;
+      mobileSheetState = state;
+      const sb = document.querySelector('.sidebar');
+      if (!sb) return;
+      sb.classList.remove('sheet-collapsed', 'sheet-half', 'sheet-full');
+      sb.classList.add('sheet-' + state);
+
+      const fabText = document.getElementById('mobile-fab-text');
+      const fabIcon = document.getElementById('mobile-fab-icon');
+      if (fabText) {
+        if (state === 'collapsed') {
+          fabText.innerText = "展开数据看板";
+          if (fabIcon) fabIcon.innerText = "📊";
+        } else if (state === 'half') {
+          fabText.innerText = "全屏查看";
+          if (fabIcon) fabIcon.innerText = "⏫";
+        } else {
+          fabText.innerText = "收起面板";
+          if (fabIcon) fabIcon.innerText = "⬇️";
+        }
+      }
+    }
+
+    function initMobileGestures() {
+      const handle = document.querySelector('.sheet-drag-handle');
+      if (!handle) return;
+
+      let touchStartY = 0;
+
+      handle.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+      }, { passive: true });
+
+      handle.addEventListener('touchend', (e) => {
+        const deltaY = e.changedTouches[0].clientY - touchStartY;
+        if (deltaY < -30) {
+          // Swiped UP
+          if (mobileSheetState === 'collapsed') setMobileSheetState('half');
+          else if (mobileSheetState === 'half') setMobileSheetState('full');
+        } else if (deltaY > 30) {
+          // Swiped DOWN
+          if (mobileSheetState === 'full') setMobileSheetState('half');
+          else if (mobileSheetState === 'half') setMobileSheetState('collapsed');
+        }
+      }, { passive: true });
     }
 
     // =========================================================================
